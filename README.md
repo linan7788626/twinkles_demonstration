@@ -1,18 +1,24 @@
 # cython_pylensing_toys
 
 ## Introduction
-A version of my **_Glensing Toy_** with cython boosting. **_Glensing Toy_** is a software to demostrate what gravitational lensing is. By using some combination of mouse and keys, you can control the source and lenses as you will. **_Glensing Toy_** shows both the properties of sources (white ball) and the lensed images (blue arcs). Moreover, caustic and critical curves of this lensing system are shown defaultly. By press "f" or "g", you can also take a look at the the properties of lenses, including main halo and subhalos, and the images of the member galaxies of this lens. 
+This is an improved version of my **_Glensing Toy_** with cython boosting. **_Glensing Toy_** is a software to demostrate what gravitational lensing is. By using some combinations of mouse and keys, you can control sources and lenses. **_Glensing Toy_** shows both sources (white balls) and lensed images (blue arcs). Moreover, caustic and critical curves of this lensing system are shown defaultly (Figure 1). By pressing "f" or "g", you can also take a look at the properties of lenses (Figure 3), and the simulated observation of the lensing system (Figure 2). 
 
-![screenshot](https://raw.githubusercontent.com/linan7788626/cython_pylensing_toys/master/screenshot.png)
+
+Figure 1:
+![Figure 1](figure0.png)
+Figure 2:  
+![Figure 2](figure1.png)
+Figure 3:
+![Figure 3](figure2.png)
+
 
 1. Dependences:  
 	* [Python2.7](https://www.python.org), [Numpy](http://www.numpy.org), [Pygame](http://www.pygame.org), [Cython](http://cython.github.io).
 
 2. Installation:  
-	* Clone it or download it firstly.  
-	
+	* Clone it or download it,    
 
-	Then
+	THEN
 	```bash
 	$ python2.7 setup.py build_ext --inplace
 	```
@@ -20,17 +26,17 @@ A version of my **_Glensing Toy_** with cython boosting. **_Glensing Toy_** is a
 	```bash
 	$./make_so
 	```
-3. Run Code:  
+3. Code Running:  
 
 	```bash
-	$ python2.7 test_cython.py
+	$ python2.7 multiple_sources.py
 	```
 
 
 ##Usage
 
-1. How to control source:  
-You can use the left click of the mouse to control the source, 
+1. How to control sources:  
+You can use the left click of the mouse to control the sources, 
 but you have to press "w" for where, "s" for size and "e" for ellipticity and orientation.
   * Holding "w" and left click, you can move you mouse to move the position of the source.
   * Holding "s" and left click, you can move you mouse vertically to change the size of the source.
@@ -54,28 +60,30 @@ Try "f" and "g". :-)
 
 ##Todo List
 1. Sources
- - [ ] More models of sources (Sersic, Moffat, Disk\+Bulge...)
+ - [x] More sources.
+ - [ ] More models of sources (Sersic, Moffat, Disk\+Bulge...).
  - [ ] Real galaxies images.
  - [ ] Arbitrary pictures (for fun).
 
 2. Lenses
- - [ ] More models of lenses (PIEMD, GNFW, NFW\+Hernquist, Burkert...)
+ - [ ] More models of lenses (PIEMD, GNFW, NFW\+Hernquist, Burkert...).
  - [ ] Directly input mass sheet.
  - [ ] More satellite galaxies?
- - [ ] Realistic images of statelite galaxies.
+ - [ ] Realistic images of satellite galaxies.
 
 3. Algorithm 
+ - [ ] Anti-Aliasing.
  - [ ] Better caustic drawer.
 
-5. Time delay
+5. Time Delay
  - [ ] Implementing in twinkles branch.
 
-6. Competition Model.
+6. Competition Model
  - [ ] Input lensed images by one person.
  - [ ] Reconstruct it by another one.
  - [ ] Score the matching.
 
-7. Science Side
+7. Input and Output
  - [ ] Save the parameters of current lensing system, including lenses and sources.
  - [ ] Make the catalog of lensing system to be an input file.
  - [ ] Show all the parameters of current lensing system in real time.
