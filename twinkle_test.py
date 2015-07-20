@@ -57,7 +57,8 @@ def nie_all(x1,x2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
     Kc = 1.0
     #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-    td = Kc*(0.5*((x1-ys1)**2.0+(x2-ys2)**2.0)-phi)
+    td = Kc*(0.5*((al1)**2.0+(al2)**2.0)-phi)
+    #td = Kc*(0.5*((x1-ys1)**2.0+(x2-ys2)**2.0)-phi)
 
     y1 = x1-al1
     y2 = x2-al2
@@ -125,7 +126,7 @@ def main():
     #cc = find_critical_curve(mu)
 
     pygame.init()
-    FPS = 30
+    FPS = 60
     fpsClock = pygame.time.Clock()
 
     screen = pygame.display.set_mode((nnn, nnn), 0, 32)
@@ -167,6 +168,7 @@ def main():
 
     #----------------------------------------------------
 
+    ic = FPS/4.0
 
     i = 0
     while True:
@@ -190,8 +192,8 @@ def main():
 
                 elif event.button == 5:
                     gr_sig += 0.01
-                    if gr_sig >0.2:
-                        gr_sig = 0.1
+                    if gr_sig >0.4:
+                        gr_sig = 0.4
 
 
 
@@ -260,26 +262,22 @@ def main():
         base1[:,:,1] = g_image*256
         base1[:,:,2] = g_image*256
 
-        sktd = int(np.abs(np.max(td)-np.min(td)))
+        sktd = td/td.max()*ic/2
 
-        itmp = i%((sktd+40)*2)
+        itmp = (i+sktd)%(FPS)
 
-        xtmp = itmp+td*80
+        ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
 
-        ratio = (20-xtmp)*xtmp
-
-        ratio[ratio<0]=0
-        #ratio = ratio/ratio.max()
-        #print np.min(td)-np.max(td),np.max(ratio)
+        ratio[ratio<0]=0.0
 
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)
         #base2[:,:,2] = g_lensimage*256*(1+ratio)
 
-        base2[:,:,0] = g_lensimage*(100.0+ratio)*102/200.0
-        base2[:,:,1] = g_lensimage*(100.0+ratio)*178/200.0
-        base2[:,:,2] = g_lensimage*(100.0+ratio)*256/200.0
+        base2[:,:,0] = g_lensimage*102*(1.0+ratio)/2
+        base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
+        base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
 
         wf = base1+base2
 

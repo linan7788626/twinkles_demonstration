@@ -134,7 +134,7 @@ void nie_all(double xi1,double xi2,double xc1,double xc2,double b,double s,doubl
     *mu = 1.0/(y11*y22-y12*y21);
 }
 
-void arbitrary_td_map(double *x1,double *x2,double *phi,int nx,int ny,double ys1,double ys2,double *td) {
+void arbitrary_td(double *x1,double *x2,double *phi,int nx,int ny,double ys1,double ys2,double *td) {
 
     double Kc = 1.0;
     //Kc = (1.0+zl)/c*(Dl*Ds/Dls)
@@ -143,6 +143,19 @@ void arbitrary_td_map(double *x1,double *x2,double *phi,int nx,int ny,double ys1
 		for (j = 0; j < ny; j++) {
 			index = i*ny+j;
 			td[index] = Kc*(0.5*(pow((x1[index]-ys1),2.0)+pow((x2[index]-ys2),2.0))-phi[index]);
+		}
+	}
+}
+
+void arbitrary_td_map(double *al1,double *al2,double *phi,int nx,int ny,double *td) {
+
+    double Kc = 1.0;
+    //Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+	int i,j,index;
+	for (i = 0; i < nx; i++) {
+		for (j = 0; j < ny; j++) {
+			index = i*ny+j;
+			td[index] = Kc*(0.5*(pow(al1[index],2.0)+pow(al2[index],2.0))-phi[index]);
 		}
 	}
 }
