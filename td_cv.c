@@ -48,7 +48,6 @@ double nie_phi(double x1,double x2,double re0,double rcore,double qe) {
 	double res;
     res = res1-res2;
     return res;
-
 }
 
 double nie_alphas(double x1,double x2,double re0,double rcore,double qe) {

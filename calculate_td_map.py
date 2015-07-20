@@ -25,6 +25,17 @@ def nie_phi(x1,x2,re0,rcore,qe):
     res = res1-res2
     return res
 
+def nie_phi_total(x1,x2,re0,rcore,qe):
+
+    res0 = re0/np.sqrt(1-qe*qe)
+    al1 = res0*np.arctan(x1*np.sqrt(1-qe*qe)/(hfunc(x1,x2)+rcore))
+    al2 = res0*np.arctanh(x2*np.sqrt(1-qe*qe)/(hfunc(x1,x2)+rcore*qe*qe))
+
+    res1 = x1*al1+x2*al2
+    res2 = re0*rcore*np.log(np.sqrt((hfunc(x1,x2)+rcore)**2.0+(1-qe*qe)*x1*x1))
+    res = res1-res2
+    return res
+
 def nie_alphas(x1,x2,re0,rcore,qe):
     res0 = re0/np.sqrt(1-qe*qe)
     al1 = np.arctan(x1*np.sqrt(1-qe*qe)/(hfunc(x1,x2)+rcore))
@@ -38,6 +49,39 @@ def nie_kappa(x1,x2,re0,rcore,qe):
 def nie_mu(x1,x2,re0,rcore,qe):
     res = 1.0/(1.0-re0/hfunc(x1,x2)-re0*re0*rcore/(hfunc(x1,x2)*((hfunc(x1,x2)+rcore)**2+(1-qe*qe)*x1*x1)))
     return res
+
+def multiple_nie_all(xi1,xi2,lpars_list):
+    phi = xi1*0.0
+    al1 = xi1*0.0
+    al2 = xi1*0.0
+    for i in lpars_list:
+        phi_tmp,al1_tmp,al2_tmp = lpar_nie_all(xi1,xi1,i)
+        phi = phi + phi_tmp
+        al1 = al1 + al1_tmp
+        al2 = al2 + al2_tmp
+
+    return phi,al1,al2
+
+def lpar_nie_all(xi1,xi2,lpar):
+
+    xc1 = lpar[0]
+    xc2 = lpar[1]
+    b = lpar[2]
+    s = lpar[3]
+    q = lpar[4]
+    rot = lpar[5]
+
+    x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
+
+    wx = np.sqrt(q*q*(x1*x1+s*s)+x2*x2)
+
+    al1 = b/np.sqrt(1-q*q)*np.arctan(x1*np.sqrt(1-q*q)/(wx+s))
+    al2 = b/np.sqrt(1-q*q)*np.arctanh(x2*np.sqrt(1-q*q)/(wx+q*q*s))
+
+    hx = np.sqrt((wx+s)**2.0+(1-q*q)*x1*x1)
+    phi = x1*al1+x2*al2-b*s*np.log(hx)+b*q*s*np.log((1+q)*s)
+
+    return phi,al1,al2
 
 def nie_all(x1,x2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
