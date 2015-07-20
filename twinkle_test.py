@@ -60,10 +60,10 @@ def nie_all(xi1,xi2,xc1,xc2,b,s,q,rot,ys1,ys2):
     td = Kc*(0.5*((al1)**2.0+(al2)**2.0)-phi)
     #td = Kc*(0.5*((x1-ys1)**2.0+(x2-ys2)**2.0)-phi)
 
-    y1 = xi1-al1
-    y2 = xi2-al2
+    y1 = x1-al1
+    y2 = x2-al2
 
-    #y1,y2 = xy_rotate(y1,y2,xc1,xc2,-rot)
+    y1,y2 = xy_rotate(y1,y2,xc1,xc2,-rot)
 
 #------------------------------------------------------------------
     demon1 = ((wx+s)**2+(1.0-q*q)*x1*x1)*wx
@@ -75,7 +75,7 @@ def nie_all(xi1,xi2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
     mu = 1.0/(y11*y22-y12*y21)
 
-    return phi,td,al1,al2#,kappa,mu,y1,y2
+    return phi,td,al1,al2,kappa,mu,y1,y2
 
 def multiple_nie_all(xi1,xi2,lpars_list):
     phi = xi1*0.0
@@ -178,10 +178,10 @@ def main():
     # lens parameters for main halo
     xlc1 = 0.0
     xlc2 = 0.0
-    ql0 = 0.999999999999
-    rc0 = 0.000000000001
+    ql0 = 0.699999999999
+    rc0 = 0.100000000001
     re0 = 1.0
-    phi0 = 0.0
+    phi0 = 30.0
     lpar = np.asarray([xlc1, xlc2, re0, rc0, ql0, phi0])
 
     lpars_list = []
@@ -192,7 +192,7 @@ def main():
     xls2 = 0.6
     qls = 0.999999999999
     rcs = 0.000000000001
-    res = 0.5
+    res = 0.0
     phis = 0.0
     lpars = np.asarray([xls1, xls2, res, rcs, qls, phis])
     lpars_list.append(lpars)
@@ -306,16 +306,16 @@ def main():
         #yi2 = xi2-ai2
         #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
-        phi,ai1,ai2 = multiple_nie_all(xi1,xi2,lpars_list)
-        Kc = 1.0
-        #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-        td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
-        yi1 = xi1-ai1
-        yi2 = xi2-ai2
-        g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-
-        #phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+        #phi,ai1,ai2 = multiple_nie_all(xi1,xi2,lpars_list)
+        #Kc = 1.0
+        ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+        #td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
+        #yi1 = xi1-ai1
+        #yi2 = xi2-ai2
         #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
+
+        phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+        g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
         base1[:,:,0] = g_image*256
         base1[:,:,1] = g_image*256
