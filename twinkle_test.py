@@ -41,6 +41,30 @@ def nie_mu(x1,x2,re0,rcore,qe):
     res = 1.0/(1.0-re0/hfunc(x1,x2)-re0*re0*rcore/(hfunc(x1,x2)*((hfunc(x1,x2)+rcore)**2+(1-qe*qe)*x1*x1)))
     return res
 
+def new_nie_all(xi1,xi2,lpar):
+    xc1 = lpar[0]
+    xc2 = lpar[1]
+    b = lpar[2]
+    s = lpar[3]
+    q = lpar[4]
+    rot = lpar[5]
+
+    dsx = xi1[1,1]-xi1[0,0]
+
+    x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
+
+    wx = np.sqrt(q*q*(x1*x1+s*s)+x2*x2)
+
+    a1 = b/np.sqrt(1-q*q)*np.arctan(x1*np.sqrt(1-q*q)/(wx+s))
+    a2 = b/np.sqrt(1-q*q)*np.arctanh(x2*np.sqrt(1-q*q)/(wx+q*q*s))
+
+    hx = np.sqrt((wx+s)**2.0+(1-q*q)*x1*x1)
+    phi = x1*a1+x2*a2-b*s*np.log(hx)+b*q*s*np.log((1+q)*s)
+
+    ai2,ai1 = np.gradient(phi,dsx)
+
+    return phi,ai1,ai2#,kappa,mu,y1,y2
+
 def nie_all(xi1,xi2,xc1,xc2,b,s,q,rot,ys1,ys2):
 
     x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
@@ -83,6 +107,18 @@ def multiple_nie_all(xi1,xi2,lpars_list):
     al2 = xi1*0.0
     for i in lpars_list:
         phi_tmp,al1_tmp,al2_tmp = lpar_nie_all(xi1,xi2,i)
+        phi = phi + phi_tmp
+        al1 = al1 + al1_tmp
+        al2 = al2 + al2_tmp
+
+    return phi,al1,al2
+
+def multiple_new_nie_all(xi1,xi2,lpars_list):
+    phi = xi1*0.0
+    al1 = xi1*0.0
+    al2 = xi1*0.0
+    for i in lpars_list:
+        phi_tmp,al1_tmp,al2_tmp = new_nie_all(xi1,xi2,i)
         phi = phi + phi_tmp
         al1 = al1 + al1_tmp
         al2 = al2 + al2_tmp
@@ -179,7 +215,11 @@ def main():
     xlc1 = 0.0
     xlc2 = 0.0
     ql0 = 0.699999999999
+<<<<<<< HEAD
     rc0 = 0.100000000001
+=======
+    rc0 = 0.000000000001
+>>>>>>> develop
     re0 = 1.0
     phi0 = 30.0
     lpar = np.asarray([xlc1, xlc2, re0, rc0, ql0, phi0])
@@ -189,7 +229,7 @@ def main():
     #----------------------------------------------------
     # lens parameters for main halo
     xls1 = 0.7
-    xls2 = 0.6
+    xls2 = 0.8
     qls = 0.999999999999
     rcs = 0.000000000001
     res = 0.0
@@ -307,11 +347,23 @@ def main():
         #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
         #phi,ai1,ai2 = multiple_nie_all(xi1,xi2,lpars_list)
+<<<<<<< HEAD
         #Kc = 1.0
         ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
         #td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
         #yi1 = xi1-ai1
         #yi2 = xi2-ai2
+=======
+        phi,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
+        Kc = 1.0
+        #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+        td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
+        yi1 = xi1-ai1
+        yi2 = xi2-ai2
+        g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
+
+        #phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+>>>>>>> develop
         #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)

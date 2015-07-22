@@ -50,29 +50,32 @@ void lanczos_diff_2_tag(double *m1, double *m2, double *m11, double *m12, double
     int index;
 
     for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-		i_m1 = i-1;i_m2 = i-2;i_m3 = i-3;
-		i_p1 = i+1;i_p2 = i+2;i_p3 = i+3;
-		j_m1 = j-1;j_m2 = j-2;j_m3 = j-3;
-		j_p1 = j+1;j_p2 = j+2;j_p3 = j+3;
 
-		if (j_m3<0||j_p3>(Ncc-1)||i_m3<0||i_p3>(Ncc-1)) continue;
+		//i_m1 = i-1;i_m2 = i-2;i_m3 = i-3;
+		//i_p1 = i+1;i_p2 = i+2;i_p3 = i+3;
+		//j_m1 = j-1;j_m2 = j-2;j_m3 = j-3;
+		//j_p1 = j+1;j_p2 = j+2;j_p3 = j+3;
 
-        //if (i==0) {i_m1 = Ncc-1;i_m2 = Ncc-2;i_m3 = Ncc-3;}
-        //else if (i==1) {i_m1 = 0;i_m2 = Ncc-1;i_m3 = Ncc-2;}
-        //else if (i==2) {i_m1 = 1;i_m2 = 0;i_m3 = Ncc-1;}
-        //else {i_m1 = i-1;i_m2 = i-2;i_m3 = i-3;}
-        //if (j==0) {j_m1 = Ncc-1;j_m2 = Ncc-2;j_m3 = Ncc-3;}
-        //else if (j==1) {j_m1 = 0;j_m2 = Ncc-1;j_m3 = Ncc-2;}
-        //else if (j==2) {j_m1 = 1;j_m2 = 0;j_m3 = Ncc-1;}
-        //else {j_m1 = j-1;j_m2 = j-2;j_m3 = j-3;}
-        //if (i==Ncc-1) {i_p1 = 0;i_p2 = 1;i_p3 = 2;}
-        //else if (i==Ncc-2) {i_p1 = Ncc-1;i_p2 = 0;i_p3 = 1;}
-        //else if (i==Ncc-3) {i_p1 = Ncc-2;i_p2 = Ncc-1;i_p3 = 0;}
-        //else {i_p1 = i+1;i_p2 = i+2;i_p3 = i+3;}
-        //if (j==Ncc-1) {j_p1 = 0;j_p2 = 1;j_p3 = 2;}
-        //else if (j==Ncc-2) {j_p1 = Ncc-1;j_p2 = 0;j_p3 = 1;}
-        //else if (j==Ncc-2) {j_p1 = Ncc-2;j_p2 = Ncc-1;j_p3 = 0;}
-        //else {j_p1 = j+1;j_p2 = j+2;j_p3 = j+3;}
+		//if (j_m3<0||j_p3>(Ncc-1)||i_m3<0||i_p3>(Ncc-1)) continue;
+		//if (j_m2<0||j_p2>(Ncc-1)||i_m2<0||i_p2>(Ncc-1)) continue;
+		//if (j_m1<0||j_p1>(Ncc-1)||i_m1<0||i_p1>(Ncc-1)) continue;
+
+        if (i==0) {i_m1 = Ncc-1;i_m2 = Ncc-2;i_m3 = Ncc-3;}
+        else if (i==1) {i_m1 = 0;i_m2 = Ncc-1;i_m3 = Ncc-2;}
+        else if (i==2) {i_m1 = 1;i_m2 = 0;i_m3 = Ncc-1;}
+        else {i_m1 = i-1;i_m2 = i-2;i_m3 = i-3;}
+        if (j==0) {j_m1 = Ncc-1;j_m2 = Ncc-2;j_m3 = Ncc-3;}
+        else if (j==1) {j_m1 = 0;j_m2 = Ncc-1;j_m3 = Ncc-2;}
+        else if (j==2) {j_m1 = 1;j_m2 = 0;j_m3 = Ncc-1;}
+        else {j_m1 = j-1;j_m2 = j-2;j_m3 = j-3;}
+        if (i==Ncc-1) {i_p1 = 0;i_p2 = 1;i_p3 = 2;}
+        else if (i==Ncc-2) {i_p1 = Ncc-1;i_p2 = 0;i_p3 = 1;}
+        else if (i==Ncc-3) {i_p1 = Ncc-2;i_p2 = Ncc-1;i_p3 = 0;}
+        else {i_p1 = i+1;i_p2 = i+2;i_p3 = i+3;}
+        if (j==Ncc-1) {j_p1 = 0;j_p2 = 1;j_p3 = 2;}
+        else if (j==Ncc-2) {j_p1 = Ncc-1;j_p2 = 0;j_p3 = 1;}
+        else if (j==Ncc-2) {j_p1 = Ncc-2;j_p2 = Ncc-1;j_p3 = 0;}
+        else {j_p1 = j+1;j_p2 = j+2;j_p3 = j+3;}
 
         index = i*Ncc+j;
         if (dif_tag==-1) {
@@ -168,7 +171,7 @@ void tophat_2d(double *x1,double *x2, int nx1, int nx2,double *par,double *res) 
     //gpars = np.asarray([ylcs,xlcs,qls,aps,l_sigs,phis]);
 	double *x1new = (double *)malloc(nx1*nx2*sizeof(double));
 	double *x2new = (double *)malloc(nx1*nx2*sizeof(double));
-    xy_rotate(x1,x2,nx1,nx2,par[0], par[1], par[5],x1new,x2new);
+    xy_rotate(x1,x2,nx1,nx2,par[0],par[1], par[5],x1new,x2new);
 	int i,j,index;
 	double r_ell;
 	for (i=0;i<nx1;++i) for (j=0;j<nx2;++j){
@@ -224,12 +227,21 @@ void find_critical_curve(double *mu,int nx,int ny,double* res) {
 	int im1,ip1,jm1,jp1;
 	for (i = 0; i < nx; ++i) for (j = 0; j < ny; ++j) {
 		index = i*ny+j;
-		im1 = i-1;
-		ip1 = i+1;
-		jm1 = j-1;
-		jp1 = j+1;
+		//im1 = i-1;
+		//ip1 = i+1;
+		//jm1 = j-1;
+		//jp1 = j+1;
 
-		if (im1<0||jm1<0||ip1>(nx-1)||jp1>(ny-1)) continue;
+		//if (im1<0||jm1<0||ip1>(nx-1)||jp1>(ny-1)) continue;
+
+        if (i==0) {im1 = nx-1;}
+        else {im1 = i-1;}
+        if (j==0) {jm1 = ny-1;}
+        else {jm1 = j-1;}
+        if (i==nx-1) {ip1 = 0;}
+        else {ip1 = i+1;}
+        if (j==ny-1) {jp1 = 0;}
+        else {jp1 = j+1;}
 
 		sign_t = sign(mu[index])*(sign(mu[im1*ny+j])
 								 +sign(mu[i*ny+jm1])
