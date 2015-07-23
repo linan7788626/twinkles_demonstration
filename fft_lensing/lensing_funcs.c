@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 #include <fftw3.h>
 #include "mycosmology.h"
 //----------------------------------------------------------------------------------
@@ -28,34 +27,32 @@ void sdens_to_kappa(double p_mass_in, double* sdens_in, int Ncc, double Dcell, d
 	for (i=Nc2/4;i<Nc2*3/4;i++) for (j=Nc2/4;j<Nc2*3/4;j++) {
 		index1 = i*Nc2+j;
 		index2 = (i-Nc2/4)*Nc2/2+(j-Nc2/4);
-		kappa[index1] = p_mass_in*sdens_in[index2]/scrit;
+		kappa[index1] = p_mass_in*sdens_in[index2];///scrit;
 	}
 }
 //----------------------------------------------------------------------------------
 void sdens_to_kappac(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappac) {
 
-	int Nc2 = Ncc*2;
 	double scrit;
 	scrit = sigma_crit(zl,zs);//*(apr*apr/(Da(zl)*Da(zl)));
 	//double kappa_max = 0.0;
 
-	int i,j,index1,index2;
-	for (i=Nc2/4;i<Nc2*3/4;i++) for (j=Nc2/4;j<Nc2*3/4;j++) {
-		index1 = i*Ncc+j;
-		index2 = (i-Nc2/4)*Nc2/2+(j-Nc2/4);
-		kappac[index1] = p_mass_in*sdens_in[index2]/scrit;
+	int i,j,index;
+	for (i=0;i<Ncc;i++) for (j=0;j<Ncc;j++) {
+		index = i*Ncc+j;
+		kappac[index] = p_mass_in*sdens_in[index];///scrit;
 	}
 }
 //--------------------------------------------------------------------
 void kernel_green_iso(int Ncc, double *in, double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = 0.00000001*Dcell;
+	double epsilon = sqrt(2.0)*Dcell;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
-			x = (double)(i)*Dcell-0.5*Dcell;
-			y = (double)(j)*Dcell-0.5*Dcell;
+			x = (double)(i)*Dcell;
+			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
 
 			in[i*Ncc+j] = 1.0/M_PI*log(r);
@@ -78,12 +75,12 @@ void kernel_green_iso(int Ncc, double *in, double Dcell) {
 void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = 0.00000001*Dcell;
+	double epsilon = sqrt(2.0)*Dcell;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
-			x = (double)(i)*Dcell-0.5*Dcell;
-			y = (double)(j)*Dcell-0.5*Dcell;
+			x = (double)(i)*Dcell;
+			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
 
 			in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
@@ -111,12 +108,12 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = 0.00000001*Dcell;
+	double epsilon = sqrt(2.0)*Dcell;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
-			x = (double)(i)*Dcell-0.5*Dcell;
-			y = (double)(j)*Dcell-0.5*Dcell;
+			x = (double)(i)*Dcell;
+			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
 
 			in1[i*Ncc+j] = x/(M_PI*r*r);
@@ -335,48 +332,25 @@ void kappa_to_shears(double *kappa,double *shear1,double *shear2, int Ncc2,doubl
 	free(shear2_iso);
 }
 //--------------------------------------------------------------------
-void sdens_to_phi(double * sdens, int Nc, double boxsize, double zl, double zs, double * phi) {
-
-	int Nc2 = Nc*2;
-	double dsx = boxsize/(double)Nc;
-	double p_mass = 1.0;
-
-	double *kappa = calloc(Nc2*Nc2,sizeof(double));
-	sdens_to_kappa(p_mass, sdens, Nc, dsx, zl, zs, kappa);
-	kappa_to_phi(kappa, phi,Nc2,dsx);
-	free(kappa);
-}
-//--------------------------------------------------------------------
-void sdens_to_alphas(double * sdens, int Nc, double boxsize, double zl, double zs, double * alpha1, double * alpha2) {
-
-	int Nc2 = Nc*2;
-	double dsx = boxsize/(double)Nc;
-	double p_mass = 1.0;
-
-	double *kappa = calloc(Nc2*Nc2,sizeof(double));
-	sdens_to_kappa(p_mass, sdens, Nc, dsx, zl, zs, kappa);
-	kappa_to_alphas(kappa,alpha1,alpha2,Nc2,dsx);
-	free(kappa);
-}
-//--------------------------------------------------------------------
-void sdens_to_shears(double * sdens, int Nc, double boxsize, double zl, double zs, double * shear1, double * shear2) {
-
-	int Nc2 = Nc*2;
-	double dsx = boxsize/(double)Nc;
-	double p_mass = 1.0;
-
-	double *kappa = calloc(Nc2*Nc2,sizeof(double));
-	sdens_to_kappa(p_mass, sdens, Nc, dsx, zl, zs, kappa);
-	kappa_to_shears(kappa,shear1,shear2,Nc2,dsx);
-	free(kappa);
-}
-//--------------------------------------------------------------------
-void calculate_mu(double *kappa,double *shear1,double *shear2, int Ncc, double *mu) {
+void calculate_mu(double *kappac,double *shear1,double *shear2, int Ncc, double *mu) {
 
 	int i,j,index;
 	for (i=0;i<Ncc;i++) for (j=0;j<Ncc;j++) {
 		index = i*Ncc+j;
-		mu[index] = 1.0/((1.0-kappa[index])*(1.0-kappa[index])
+		mu[index] = 1.0/((1.0-kappac[index])*(1.0-kappac[index])
 				-shear1[index]*shear1[index]-shear2[index]*shear2[index]);
+	}
+}
+//--------------------------------------------------------------------
+void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td) {
+	double Kc = 1.0;
+	//Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+	//td = Kc*(0.5*((al1)**2.0+(al2)**2.0)-phi)
+	//td = Kc*(0.5*((x1-ys1)**2.0+(x2-ys2)**2.0)-phi)
+
+	int i,j,index;
+	for (i=0;i<Ncc;i++) for (j=0;j<Ncc;j++) {
+		index = i*Ncc+j;
+		td[index] = Kc*((alpha1[index]*alpha1[index]+alpha2[index]*alpha2[index])-phi[index]);
 	}
 }
