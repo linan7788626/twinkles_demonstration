@@ -14,11 +14,11 @@ import numpy as np
 
 #ext = Extension("libv2_cv", ["./v2_cv.pyx","./cv_test.c","./fcic.c"],
 #ext = Extension("libv3_cv", ["./v4_cv.pyx","./all_cv_test.c"],
-ext = Extension("libfft_lensing", ["./fft_lensing.pyx","./lensing_funcs.c"],
+ext = Extension("libfft_lensing", ["./fft_lensing.pyx","./lensing_funcs.c","./mycosmology.c"],
     include_dirs=[np.get_include(),
                   "./"],
     library_dirs=["./"],
-    libraries=["m","fftw3"]
+    libraries=["m","fftw3","gsl","gslcblas"]
 )
 
 setup(ext_modules=[ext],

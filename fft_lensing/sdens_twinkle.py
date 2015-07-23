@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-import pygame
-from pygame.locals import *
-from sys import exit
 import numpy as np
 import libfft_lensing as lf
 import pylab as pl
+import scipy.signal as ss
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -164,6 +162,52 @@ def lpar_nie_all(xi1,xi2,lpar):
 
     return phi,al1,al2
 
+#--------------------------------------------------------------------
+def green_iso(Nc,dsx):
+    boxsize = Nc*dsx
+    x1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,Nc)+0.5*dsx
+    x2 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,Nc)+0.5*dsx
+    x1,x2 = np.meshgrid(x1,x2)
+
+    epsilon= 0.0001
+    r = np.sqrt(x1**2.0+x2**2.0+epsilon**2.0)
+    res = 1.0/np.pi*np.log(r)
+    return res
+
+def alphas_iso(Nc,dsx):
+    boxsize = Nc*dsx
+    x1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,Nc)+0.5*dsx
+    x2 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,Nc)+0.5*dsx
+    x1,x2 = np.meshgrid(x1,x2)
+
+    epsilon= 0.0001
+    r = np.sqrt(x1**2.0+x2**2.0+epsilon**2.0)
+    res1 = x1/(r**2.0*np.pi)
+    res2 = x2/(r**2.0*np.pi)
+    return res1,res2
+
+def fft_lensing_signals(kappac,green_in,dsx):
+
+    phi = ss.fftconvolve(kappac,green_in,mode='same')*(dsx*dsx)
+
+    alpha2,alpha1 = np.gradient(phi,dsx)
+    phi12,phi11 = np.gradient(alpha1,dsx)
+    phi22,phi21 = np.gradient(alpha2,dsx)
+
+    kappas = (phi11+phi22)*0.5
+    #shear1 = (phi11-phi22)*0.5
+    #shear2 = (phi12+phi21)*0.5
+
+    mu = 1.0/(1.0-phi11-phi22+phi11*phi22-phi12*phi21)
+
+    Kc = 1.0
+    #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+    td = Kc*(0.5*((alpha1)**2.0+(alpha2)**2.0)-phi)
+
+    nx,ny = np.shape(phi)
+
+    return phi[nx/4:3*nx/4,ny/4:3*ny/4],alpha1[nx/4:3*nx/4,ny/4:3*ny/4],alpha2[nx/4:3*nx/4,ny/4:3*ny/4],td[nx/4:3*nx/4,ny/4:3*ny/4],mu[nx/4:3*nx/4,ny/4:3*ny/4],kappas[nx/4:3*nx/4,ny/4:3*ny/4]
+
 def lensed_images(xi1,xi2,yi1,yi2,gpar):
 
     g_image = gauss_2d(xi1,xi2,gpar)
@@ -242,7 +286,13 @@ def main():
     #phi22,phi21 = np.gradient(ai2,dsx)
     #sdens = 0.5*(phi11+phi22)
 
-    phi,alpha1,alpha2,td,mu,kappac = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+    #phi,alpha1,alpha2,td,mu,kappac = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+#--------------------------------------------------------------------
+    sdens_pad = np.zeros((nnn*2,nnn*2))
+    sdens_pad[nnn/2:nnn/2*3,nnn/2:nnn/2*3] = sdens
+    green_in = green_iso(nnn*2,dsx)
+    phi,alpha1,alpha2,td,mu,kappas = fft_lensing_signals(sdens_pad,green_in,dsx)
+#--------------------------------------------------------------------
 
     Kc = 1.0
     #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
@@ -260,18 +310,18 @@ def main():
     #levels = [3.0,2.5,2.0,1.5,1.0,0.5,0.0,-0.5]
     #pl.figure()
     #pl.contour(xi1,xi2,phi,levels,colors=['k',])
-    #pl.contour(xi1,xi2,phii-np.median(phii-phi),levels,colors=['r',])
+    #pl.contour(xi1,xi2,phii,levels,colors=['r',])
     #pl.show()
 
-    #levels = [-1.6,-1.2,-0.8,0.4,0.0,0.4,0.8,1.2,1.6]
-    #pl.figure()
-    #pl.contour(xi1,xi2,np.sqrt(alpha2**2.0+alpha1**2.0),levels,colors=['k',])
-    #pl.contour(xi1,xi2,np.sqrt(ai2**2.0+ai1**2.0),levels,colors=['r',])
-
-    levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
+    levels = [-1.6,-1.2,-0.8,0.4,0.0,0.4,0.8,1.2,1.6]
     pl.figure()
-    pl.contour(xi1,xi2,td,levels,colors=['k',])
-    pl.contour(xi1,xi2,tdi,levels,colors=['r',])
+    pl.contour(xi1,xi2,np.sqrt(alpha2**2.0+alpha1**2.0),levels,colors=['k',])
+    pl.contour(xi1,xi2,np.sqrt(ai2**2.0+ai1**2.0),levels,colors=['r',])
+
+    #levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
+    #pl.figure()
+    #pl.contour(xi1,xi2,tdi,levels,colors=['r',])
+    #pl.contour(xi1,xi2,td,levels,colors=['k',])
 
 
 

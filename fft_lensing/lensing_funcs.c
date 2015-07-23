@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
 #include <fftw3.h>
 #include "mycosmology.h"
 //----------------------------------------------------------------------------------
@@ -20,8 +19,8 @@ void Loadin_grids_mesh(double boxsize, double xc1, double xc2, int Ncc, double *
 void sdens_to_kappa(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappa) {
 
 	int Nc2 = Ncc*2;
-	//double scrit;
-	//scrit = sigma_crit(zl,zs);//*(apr*apr/(Da(zl)*Da(zl)));
+	double scrit;
+	scrit = sigma_crit(zl,zs);//*(apr*apr/(Da(zl)*Da(zl)));
 	//double kappa_max = 0.0;
 
 	int i,j,index1,index2;
@@ -34,8 +33,8 @@ void sdens_to_kappa(double p_mass_in, double* sdens_in, int Ncc, double Dcell, d
 //----------------------------------------------------------------------------------
 void sdens_to_kappac(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappac) {
 
-	//double scrit;
-	//scrit = sigma_crit(zl,zs);//*(apr*apr/(Da(zl)*Da(zl)));
+	double scrit;
+	scrit = sigma_crit(zl,zs);//*(apr*apr/(Da(zl)*Da(zl)));
 	//double kappa_max = 0.0;
 
 	int i,j,index;
