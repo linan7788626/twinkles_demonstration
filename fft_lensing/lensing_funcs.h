@@ -1,3 +1,4 @@
+#include <fftw3.h>
 void Loadin_grids_mesh(double boxsize, double xc1, double xc2, int Ncc, double *posx1, double *posx2);
 void sdens_to_kappa(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappa);
 void sdens_to_kappac(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappac);
@@ -15,3 +16,4 @@ void sdens_to_phi(double * sdens, int Nc, double boxsize, double zl, double zs, 
 void sdens_to_alphas(double * sdens, int Nc, double boxsize, double zl, double zs, double * alpha1, double * alpha2);
 void sdens_to_shears(double * sdens, int Nc, double boxsize, double zl, double zs, double * shear1, double * shear2);
 void calculate_mu(double *kappa,double *shear1,double *shear2, int Ncc, double *mu);
+void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td);
