@@ -246,7 +246,7 @@ def lens_galaxies(xi1,xi2,glpar):
 
 def main():
 
-    nnn = 512
+    nnn = 1024
     boxsize = 4.0
     zl = 0.1
     zs = 1.0
@@ -280,18 +280,18 @@ def main():
 
     sdens = lpar_nie_kappa(xi1,xi2,lpar)
 
-    #phii,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
+    phii,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
 
-    #phi12,phi11 = np.gradient(ai1,dsx)
-    #phi22,phi21 = np.gradient(ai2,dsx)
-    #sdens = 0.5*(phi11+phi22)
+    phi12,phi11 = np.gradient(ai1,dsx)
+    phi22,phi21 = np.gradient(ai2,dsx)
+    sdens = 0.5*(phi11+phi22)
 
-    phii,ai1,ai2,tdi,mui,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+    phi,alpha1,alpha2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
 #--------------------------------------------------------------------
-    sdens_pad = np.zeros((nnn*2,nnn*2))
-    sdens_pad[nnn/2:nnn/2*3,nnn/2:nnn/2*3] = sdens
-    green_in = green_iso(nnn*2,dsx)
-    phi,alpha1,alpha2,td,mu,kappas = fft_lensing_signals(sdens_pad,green_in,dsx)
+    #sdens_pad = np.zeros((nnn*2,nnn*2))
+    #sdens_pad[nnn/2:nnn/2*3,nnn/2:nnn/2*3] = sdens
+    #green_in = green_iso(nnn*2,dsx)
+    #phi,alpha1,alpha2,td,mu,kappas = fft_lensing_signals(sdens_pad,green_in,dsx)
 #--------------------------------------------------------------------
 
     #Kc = 1.0
@@ -306,17 +306,17 @@ def main():
     #pl.contourf(xi1,xi2,np.log10(kappas))
     #pl.colorbar()
 
-    levels = [-0.8,-0.4,0.0,0.4,0.8,1.2,1.6,2.0]
-    pl.figure()
-    pl.contour(xi1,xi2,np.log10(kappai),levels,colors=['k',])
-    pl.contour(xi1,xi2,np.log10(kappas),levels,colors=['r',])
-    pl.show()
-
-    #levels = [3.0,2.5,2.0,1.5,1.0,0.5,0.0,-0.5]
+    #levels = [-0.8,-0.4,0.0,0.4,0.8,1.2,1.6,2.0]
     #pl.figure()
-    #pl.contour(xi1,xi2,phi,levels,colors=['k',])
-    #pl.contour(xi1,xi2,phii,levels,colors=['r',])
+    #pl.contour(xi1,xi2,np.log10(kappai),levels,colors=['k',])
+    #pl.contour(xi1,xi2,np.log10(kappas),levels,colors=['r',])
     #pl.show()
+
+    levels = [3.0,2.5,2.0,1.5,1.0,0.5,0.0,-0.5]
+    pl.figure()
+    pl.contour(xi1,xi2,phi,levels,colors=['k',])
+    pl.contour(xi1,xi2,phii,levels,colors=['r',])
+    pl.show()
 
     #levels = [-1.6,-1.2,-0.8,0.4,0.0,0.4,0.8,1.2,1.6]
     #pl.figure()

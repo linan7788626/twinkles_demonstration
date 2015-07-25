@@ -43,6 +43,34 @@ void sdens_to_kappac(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
 		kappac[index] = p_mass_in*sdens_in[index];///scrit;
 	}
 }
+////--------------------------------------------------------------------
+//void kernel_green_iso(int Ncc, double *in, double Dcell) {
+//	int i,j;
+//	double x,y,r;
+//	double epsilon = sqrt(2.0)*Dcell;
+//
+//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+//			x = (double)(i)*Dcell;
+//			y = (double)(j)*Dcell;
+//			r = sqrt(x*x+y*y+epsilon*epsilon);
+//
+//			in[i*Ncc+j] = 1.0/M_PI*log(r);
+//		}
+//		else {
+//			if(i <= Ncc/2 && j > (Ncc/2)) {
+//				in[i*Ncc+j] = in[i*Ncc+Ncc+1-j];
+//			}
+//			if(i > (Ncc/2) && j <= (Ncc/2)) {
+//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+j];
+//			}
+//
+//			if(i > (Ncc/2) && j > (Ncc/2)) {
+//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+Ncc+1-j];
+//			}
+//		}
+//	}
+//}
 //--------------------------------------------------------------------
 void kernel_green_iso(int Ncc, double *in, double Dcell) {
 	int i,j;
@@ -50,7 +78,7 @@ void kernel_green_iso(int Ncc, double *in, double Dcell) {
 	double epsilon = sqrt(2.0)*Dcell;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
@@ -58,15 +86,15 @@ void kernel_green_iso(int Ncc, double *in, double Dcell) {
 			in[i*Ncc+j] = 1.0/M_PI*log(r);
 		}
 		else {
-			if(i <= Ncc/2 && j > (Ncc/2)) {
-				in[i*Ncc+j] = in[i*Ncc+Ncc+1-j];
+			if(i < Ncc/2 && j >= (Ncc/2)) {
+				in[i*Ncc+j] = in[i*Ncc+(Ncc-j)];
 			}
-			if(i > (Ncc/2) && j <= (Ncc/2)) {
-				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+j];
+			if(i >= (Ncc/2) && j < (Ncc/2)) {
+				in[i*Ncc+j] = in[(Ncc-i)*Ncc+j];
 			}
 
-			if(i > (Ncc/2) && j > (Ncc/2)) {
-				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+Ncc+1-j];
+			if(i >= (Ncc/2) && j >= (Ncc/2)) {
+				in[i*Ncc+j] = in[(Ncc-i)*Ncc+(Ncc-j)];
 			}
 		}
 	}
@@ -78,7 +106,7 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	double epsilon = sqrt(2.0)*Dcell;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
@@ -88,18 +116,18 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 		}
 
 		else {
-			if(i <= Ncc/2 && j > (Ncc/2)) {
-				in1[i*Ncc+j]  =  in1[i*Ncc+Ncc+1-j];
-				in2[i*Ncc+j]  = -in2[i*Ncc+Ncc+1-j];
+			if(i < Ncc/2 && j >= (Ncc/2)) {
+				in1[i*Ncc+j]  =  in1[i*Ncc+(Ncc-j)];
+				in2[i*Ncc+j]  = -in2[i*Ncc+(Ncc-j)];
 			}
-			if(i > (Ncc/2) && j <= (Ncc/2)) {
-				in1[i*Ncc+j]  =  in1[(Ncc+1-i)*Ncc+j];
-				in2[i*Ncc+j]  = -in2[(Ncc+1-i)*Ncc+j];
+			if(i >= (Ncc/2) && j < (Ncc/2)) {
+				in1[i*Ncc+j]  =  in1[(Ncc-i)*Ncc+j];
+				in2[i*Ncc+j]  = -in2[(Ncc-i)*Ncc+j];
 			}
 
-			if(i > (Ncc/2) && j > (Ncc/2)) {
-				in1[i*Ncc+j]  =  in1[(Ncc+1-i)*Ncc+Ncc+1-j];
-				in2[i*Ncc+j]  =  in2[(Ncc+1-i)*Ncc+Ncc+1-j];
+			if(i >= (Ncc/2) && j >= (Ncc/2)) {
+				in1[i*Ncc+j]  =  in1[(Ncc-i)*Ncc+(Ncc-j)];
+				in2[i*Ncc+j]  =  in2[(Ncc-i)*Ncc+(Ncc-j)];
 			}
 		}
 	}
@@ -108,10 +136,10 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = sqrt(2.0)*Dcell;
+	double epsilon = sqrt(2.0)*Dcell*0.00000000001;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
@@ -120,18 +148,18 @@ void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
 			in2[i*Ncc+j] = y/(M_PI*r*r);
 		}
 		else {
-			if(i <= Ncc/2 && j > (Ncc/2)) {
-				in1[i*Ncc+j]  =  in1[i*Ncc+Ncc+1-j];
-				in2[i*Ncc+j]  = -in2[i*Ncc+Ncc+1-j];
+			if(i < Ncc/2 && j >= (Ncc/2)) {
+				in1[i*Ncc+j]  =  in1[i*Ncc+(Ncc-j)];
+				in2[i*Ncc+j]  = -in2[i*Ncc+(Ncc-j)];
 			}
-			if(i > (Ncc/2) && j <= (Ncc/2)) {
-				in1[i*Ncc+j]  = -in1[(Ncc+1-i)*Ncc+j];
-				in2[i*Ncc+j]  =  in2[(Ncc+1-i)*Ncc+j];
+			if(i >= (Ncc/2) && j < (Ncc/2)) {
+				in1[i*Ncc+j]  = -in1[(Ncc-i)*Ncc+j];
+				in2[i*Ncc+j]  =  in2[(Ncc-i)*Ncc+j];
 			}
 
-			if(i > (Ncc/2) && j > (Ncc/2)) {
-				in1[i*Ncc+j]  = -in1[(Ncc+1-i)*Ncc+Ncc+1-j];
-				in2[i*Ncc+j]  = -in2[(Ncc+1-i)*Ncc+Ncc+1-j];
+			if(i >= (Ncc/2) && j >= (Ncc/2)) {
+				in1[i*Ncc+j]  = -in1[(Ncc-i)*Ncc+(Ncc-j)];
+				in2[i*Ncc+j]  = -in2[(Ncc-i)*Ncc+(Ncc-j)];
 			}
 		}
 	}
@@ -144,7 +172,7 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 	double cnorm = 0.0;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell-0.5*Dcell;
 			y = (double)(j)*Dcell-0.5*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
@@ -152,15 +180,15 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 			in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
 		}
 		else {
-			if(i <= Ncc/2 && j > (Ncc/2)) {
-				in[i*Ncc+j] = in[i*Ncc+Ncc+1-j];
+			if(i < Ncc/2 && j >= (Ncc/2)) {
+				in[i*Ncc+j] = in[i*Ncc+(Ncc-j)];
 			}
-			if(i > (Ncc/2) && j <= (Ncc/2)) {
-				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+j];
+			if(i >= (Ncc/2) && j < (Ncc/2)) {
+				in[i*Ncc+j] = in[(Ncc-i)*Ncc+j];
 			}
 
-			if(i > (Ncc/2) && j > (Ncc/2)) {
-				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+Ncc+1-j];
+			if(i >= (Ncc/2) && j >= (Ncc/2)) {
+				in[i*Ncc+j] = in[(Ncc-i)*Ncc+(Ncc-j)];
 			}
 		}
 		cnorm += in[i*Ncc+j]*Dcell*Dcell;
@@ -173,6 +201,108 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 	}
 }
 //--------------------------------------------------------------------
+////--------------------------------------------------------------------
+//void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
+//	int i,j;
+//	double x,y,r;
+//	double epsilon = sqrt(2.0)*Dcell;
+//
+//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+//			x = (double)(i)*Dcell;
+//			y = (double)(j)*Dcell;
+//			r = sqrt(x*x+y*y+epsilon*epsilon);
+//
+//			in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
+//			in2[i*Ncc+j] = (-2.0*x*y)/(M_PI*r*r*r*r);
+//		}
+//
+//		else {
+//			if(i <= Ncc/2 && j > (Ncc/2)) {
+//				in1[i*Ncc+j]  =  in1[i*Ncc+Ncc+1-j];
+//				in2[i*Ncc+j]  = -in2[i*Ncc+Ncc+1-j];
+//			}
+//			if(i > (Ncc/2) && j <= (Ncc/2)) {
+//				in1[i*Ncc+j]  =  in1[(Ncc+1-i)*Ncc+j];
+//				in2[i*Ncc+j]  = -in2[(Ncc+1-i)*Ncc+j];
+//			}
+//
+//			if(i > (Ncc/2) && j > (Ncc/2)) {
+//				in1[i*Ncc+j]  =  in1[(Ncc+1-i)*Ncc+Ncc+1-j];
+//				in2[i*Ncc+j]  =  in2[(Ncc+1-i)*Ncc+Ncc+1-j];
+//			}
+//		}
+//	}
+//}
+////--------------------------------------------------------------------
+//void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
+//	int i,j;
+//	double x,y,r;
+//	double epsilon = sqrt(2.0)*Dcell;
+//
+//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+//			x = (double)(i)*Dcell;
+//			y = (double)(j)*Dcell;
+//			r = sqrt(x*x+y*y+epsilon*epsilon);
+//
+//			in1[i*Ncc+j] = x/(M_PI*r*r);
+//			in2[i*Ncc+j] = y/(M_PI*r*r);
+//		}
+//		else {
+//			if(i <= Ncc/2 && j > (Ncc/2)) {
+//				in1[i*Ncc+j]  =  in1[i*Ncc+Ncc+1-j];
+//				in2[i*Ncc+j]  = -in2[i*Ncc+Ncc+1-j];
+//			}
+//			if(i > (Ncc/2) && j <= (Ncc/2)) {
+//				in1[i*Ncc+j]  = -in1[(Ncc+1-i)*Ncc+j];
+//				in2[i*Ncc+j]  =  in2[(Ncc+1-i)*Ncc+j];
+//			}
+//
+//			if(i > (Ncc/2) && j > (Ncc/2)) {
+//				in1[i*Ncc+j]  = -in1[(Ncc+1-i)*Ncc+Ncc+1-j];
+//				in2[i*Ncc+j]  = -in2[(Ncc+1-i)*Ncc+Ncc+1-j];
+//			}
+//		}
+//	}
+//}
+////--------------------------------------------------------------------
+//void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
+//	int i,j;
+//	double x,y,r;
+//	double epsilon = 0.00000001*Dcell;
+//	double cnorm = 0.0;
+//
+//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+//			x = (double)(i)*Dcell-0.5*Dcell;
+//			y = (double)(j)*Dcell-0.5*Dcell;
+//			r = sqrt(x*x+y*y+epsilon*epsilon);
+//
+//			in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
+//		}
+//		else {
+//			if(i <= Ncc/2 && j > (Ncc/2)) {
+//				in[i*Ncc+j] = in[i*Ncc+Ncc+1-j];
+//			}
+//			if(i > (Ncc/2) && j <= (Ncc/2)) {
+//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+j];
+//			}
+//
+//			if(i > (Ncc/2) && j > (Ncc/2)) {
+//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+Ncc+1-j];
+//			}
+//		}
+//		cnorm += in[i*Ncc+j]*Dcell*Dcell;
+//	}
+//
+//	double ctotal = 0.0;
+//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+//		in[i*Ncc+j] = in[i*Ncc+j]/cnorm;
+//		ctotal += in[i*Ncc+j]*Dcell*Dcell;
+//	}
+//}
+////--------------------------------------------------------------------
 void fftw_r2c_2d(double *in_real, fftw_complex *in_fft, long Ncell, double Dcell) {
 	long i,j;
 	long nh = Ncell/2+1;
