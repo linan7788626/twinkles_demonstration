@@ -16,6 +16,7 @@ cdef extern from "./lensing_funcs.h":
     void kappa_to_shears(double *kappa,double *shear1,double *shear2, int Ncc2,double Dcell)
     void calculate_mu(double *kappa,double *shear1,double *shear2, int Ncc, double *mu)
     void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td)
+    void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai)
 
 def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
                            int Nc,double zl,double zs,double p_mass_in,double dsx):
@@ -26,6 +27,9 @@ def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
 
     cdef np.ndarray kappac = np.zeros((Nc,Nc),dtype=np.double)
     sdens_to_kappac(p_mass_in,<Dtype *>sdens.data,Nc,dsx,zl,zs,<Dtype *>kappac.data)
+
+    cdef np.ndarray kappai = np.zeros((Nc,Nc),dtype=np.double)
+    sdens_to_kappai(p_mass_in,<Dtype *>sdens.data,Nc,dsx,zl,zs,<Dtype *>kappai.data)
 #--------------------------------------------------------------------------------
 
     cdef np.ndarray phi = np.zeros((Nc,Nc),dtype=np.double)
@@ -46,4 +50,4 @@ def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
     cdef np.ndarray mu = np.zeros((Nc,Nc),dtype=np.double)
     calculate_mu(<Dtype *>kappac.data,<Dtype *>shear1.data,<Dtype *>shear2.data,Nc,<Dtype *>mu.data)
 
-    return phi,alpha1,alpha2,td,mu,kappac
+    return phi,alpha1,alpha2,td,mu,kappai

@@ -285,9 +285,9 @@ def main():
 
     phi,alpha1,alpha2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
 
-    phi12,phi11 = np.gradient(alpha2,dsx)
-    phi22,phi21 = np.gradient(alpha1,dsx)
-    kappai = 0.5*(phi11+phi22)
+    #phi12,phi11 = np.gradient(alpha2,dsx)
+    #phi22,phi21 = np.gradient(alpha1,dsx)
+    #kappai = 0.5*(phi11+phi22)
 #--------------------------------------------------------------------
     #sdens_pad = np.zeros((nnn*2,nnn*2))
     #sdens_pad[nnn/2:nnn/2*3,nnn/2:nnn/2*3] = sdens

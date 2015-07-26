@@ -17,3 +17,4 @@ void sdens_to_alphas(double * sdens, int Nc, double boxsize, double zl, double z
 void sdens_to_shears(double * sdens, int Nc, double boxsize, double zl, double zs, double * shear1, double * shear2);
 void calculate_mu(double *kappa,double *shear1,double *shear2, int Ncc, double *mu);
 void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td);
+void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai);

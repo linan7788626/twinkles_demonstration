@@ -3,6 +3,104 @@
 #include <math.h>
 #include <fftw3.h>
 #include "mycosmology.h"
+//--------------------------------------------------------------------
+void lanczos_diff_2_tag(double *m1, double *m2, double *m11, double *m12, double *m21, double *m22, double Dcell, int Ncc, int dif_tag) {
+    int i_m3,i_p3,j_m3,j_p3,i_m2,i_p2,j_m2,j_p2,i_m1,j_m1,i_p1,j_p1,i,j;
+    int index;
+
+    for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+
+		//i_m1 = i-1;i_m2 = i-2;i_m3 = i-3;
+		//i_p1 = i+1;i_p2 = i+2;i_p3 = i+3;
+		//j_m1 = j-1;j_m2 = j-2;j_m3 = j-3;
+		//j_p1 = j+1;j_p2 = j+2;j_p3 = j+3;
+
+		//if (j_m3<0||j_p3>(Ncc-1)||i_m3<0||i_p3>(Ncc-1)) continue;
+		//if (j_m2<0||j_p2>(Ncc-1)||i_m2<0||i_p2>(Ncc-1)) continue;
+		//if (j_m1<0||j_p1>(Ncc-1)||i_m1<0||i_p1>(Ncc-1)) continue;
+
+        if (i==0) {i_m1 = Ncc-1;i_m2 = Ncc-2;i_m3 = Ncc-3;}
+        else if (i==1) {i_m1 = 0;i_m2 = Ncc-1;i_m3 = Ncc-2;}
+        else if (i==2) {i_m1 = 1;i_m2 = 0;i_m3 = Ncc-1;}
+        else {i_m1 = i-1;i_m2 = i-2;i_m3 = i-3;}
+        if (j==0) {j_m1 = Ncc-1;j_m2 = Ncc-2;j_m3 = Ncc-3;}
+        else if (j==1) {j_m1 = 0;j_m2 = Ncc-1;j_m3 = Ncc-2;}
+        else if (j==2) {j_m1 = 1;j_m2 = 0;j_m3 = Ncc-1;}
+        else {j_m1 = j-1;j_m2 = j-2;j_m3 = j-3;}
+        if (i==Ncc-1) {i_p1 = 0;i_p2 = 1;i_p3 = 2;}
+        else if (i==Ncc-2) {i_p1 = Ncc-1;i_p2 = 0;i_p3 = 1;}
+        else if (i==Ncc-3) {i_p1 = Ncc-2;i_p2 = Ncc-1;i_p3 = 0;}
+        else {i_p1 = i+1;i_p2 = i+2;i_p3 = i+3;}
+        if (j==Ncc-1) {j_p1 = 0;j_p2 = 1;j_p3 = 2;}
+        else if (j==Ncc-2) {j_p1 = Ncc-1;j_p2 = 0;j_p3 = 1;}
+        else if (j==Ncc-2) {j_p1 = Ncc-2;j_p2 = Ncc-1;j_p3 = 0;}
+        else {j_p1 = j+1;j_p2 = j+2;j_p3 = j+3;}
+
+        index = i*Ncc+j;
+        if (dif_tag==-1) {
+            m11[index] = (m1[i_p1*Ncc+j]-m1[i_m1*Ncc+j])/(2.0*Dcell);
+            m12[index] = (m1[i*Ncc+j_p1]-m1[i*Ncc+j_m1])/(2.0*Dcell);
+            m21[index] = (m2[i_p1*Ncc+j]-m2[i_m1*Ncc+j])/(2.0*Dcell);
+            m22[index] = (m2[i*Ncc+j_p1]-m2[i*Ncc+j_m1])/(2.0*Dcell);
+        }
+
+        if (dif_tag==0) {
+            m11[index] = (m1[i_p1*Ncc+j]-m1[i_m1*Ncc+j])*2.0/3.0/Dcell
+            - (m1[i_p2*Ncc+j]-m1[i_m2*Ncc+j])/12.0/Dcell;
+            m22[index] = (m2[i*Ncc+j_p1]-m2[i*Ncc+j_m1])*2.0/3.0/Dcell
+            - (m2[i*Ncc+j_p2]-m2[i*Ncc+j_m2])/12.0/Dcell;
+            m21[index] = (m2[i_p1*Ncc+j]-m2[i_m1*Ncc+j])*2.0/3.0/Dcell
+            - (m2[i_p2*Ncc+j]-m2[i_m2*Ncc+j])/12.0/Dcell;
+            m12[index] = (m1[i*Ncc+j_p1]-m1[i*Ncc+j_m1])*2.0/3.0/Dcell
+            - (m1[i*Ncc+j_p2]-m1[i*Ncc+j_m2])/12.0/Dcell;
+        }
+
+        if (dif_tag==1) {
+            m11[index] =(1.0*(m1[i_p1*Ncc+j]-m1[i_m1*Ncc+j])
+                         + 2.0*(m1[i_p2*Ncc+j]-m1[i_m2*Ncc+j])
+                         + 3.0*(m1[i_p3*Ncc+j]-m1[i_m3*Ncc+j]))/(28.0*Dcell);
+            m22[index] =(1.0*(m2[i*Ncc+j_p1]-m2[i*Ncc+j_m1])
+                         + 2.0*(m2[i*Ncc+j_p2]-m2[i*Ncc+j_m2])
+                         + 3.0*(m2[i*Ncc+j_p3]-m2[i*Ncc+j_m3]))/(28.0*Dcell);
+            m12[index] =(1.0*(m1[i*Ncc+j_p1]-m1[i*Ncc+j_m1])
+                         + 2.0*(m1[i*Ncc+j_p2]-m1[i*Ncc+j_m2])
+                         + 3.0*(m1[i*Ncc+j_p3]-m1[i*Ncc+j_m3]))/(28.0*Dcell);
+            m21[index] =(1.0*(m2[i_p1*Ncc+j]-m2[i_m1*Ncc+j])
+                         + 2.0*(m2[i_p2*Ncc+j]-m2[i_m2*Ncc+j])
+                         + 3.0*(m2[i_p3*Ncc+j]-m2[i_m3*Ncc+j]))/(28.0*Dcell);
+        }
+
+        if (dif_tag==2) {
+            m11[index] = (5.0*(m1[i_p1*Ncc+j]-m1[i_m1*Ncc+j])
+                          + 4.0*(m1[i_p2*Ncc+j]-m1[i_m2*Ncc+j])
+                          + 1.0*(m1[i_p3*Ncc+j]-m1[i_m3*Ncc+j]))/(32.0*Dcell);
+            m22[index] = (5.0*(m2[i*Ncc+j_p1]-m2[i*Ncc+j_m1])
+                          + 4.0*(m2[i*Ncc+j_p2]-m2[i*Ncc+j_m2])
+                          + 1.0*(m2[i*Ncc+j_p3]-m2[i*Ncc+j_m3]))/(32.0*Dcell);
+            m12[index] = (5.0*(m1[i*Ncc+j_p1]-m1[i*Ncc+j_m1])
+                          + 4.0*(m1[i*Ncc+j_p2]-m1[i*Ncc+j_m2])
+                          + 1.0*(m1[i*Ncc+j_p3]-m1[i*Ncc+j_m3]))/(32.0*Dcell);
+            m21[index] = (5.0*(m2[i_p1*Ncc+j]-m2[i_m1*Ncc+j])
+                          + 4.0*(m2[i_p2*Ncc+j]-m2[i_m2*Ncc+j])
+                          + 1.0*(m2[i_p3*Ncc+j]-m2[i_m3*Ncc+j]))/(32.0*Dcell);
+        }
+
+        if (dif_tag==3) {
+            m11[index] = (58.0*(m1[i_p1*Ncc+j]-m1[i_m1*Ncc+j])
+                          + 67.0*(m1[i_p2*Ncc+j]-m1[i_m2*Ncc+j])
+                          + 22.0*(m1[i_p3*Ncc+j]-m1[i_m3*Ncc+j]))/(252.0*Dcell);
+            m22[index] = (58.0*(m2[i*Ncc+j_p1]-m2[i*Ncc+j_m1])
+                          + 67.0*(m2[i*Ncc+j_p2]-m2[i*Ncc+j_m2])
+                          - 22.0*(m2[i*Ncc+j_p3]-m2[i*Ncc+j_m3]))/(252.0*Dcell);
+            m12[index] = (58.0*(m1[i*Ncc+j_p1]-m1[i*Ncc+j_m1])
+                          + 67.0*(m1[i*Ncc+j_p2]-m1[i*Ncc+j_m2])
+                          - 22.0*(m1[i*Ncc+j_p3]-m1[i*Ncc+j_m3]))/(252.0*Dcell);
+            m21[index] = (58.0*(m2[i_p1*Ncc+j]-m2[i_m1*Ncc+j])
+                          + 67.0*(m2[i_p2*Ncc+j]-m2[i_m2*Ncc+j])
+                          - 22.0*(m2[i_p3*Ncc+j]-m2[i_m3*Ncc+j]))/(252.0*Dcell);
+        }
+    }
+}
 //----------------------------------------------------------------------------------
 void Loadin_grids_mesh(double boxsize, double xc1, double xc2, int Ncc, double *posx1, double *posx2) {
 	double dsx = boxsize/(double)Ncc;
@@ -43,34 +141,6 @@ void sdens_to_kappac(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
 		kappac[index] = p_mass_in*sdens_in[index];///scrit;
 	}
 }
-////--------------------------------------------------------------------
-//void kernel_green_iso(int Ncc, double *in, double Dcell) {
-//	int i,j;
-//	double x,y,r;
-//	double epsilon = sqrt(2.0)*Dcell;
-//
-//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
-//			x = (double)(i)*Dcell;
-//			y = (double)(j)*Dcell;
-//			r = sqrt(x*x+y*y+epsilon*epsilon);
-//
-//			in[i*Ncc+j] = 1.0/M_PI*log(r);
-//		}
-//		else {
-//			if(i <= Ncc/2 && j > (Ncc/2)) {
-//				in[i*Ncc+j] = in[i*Ncc+Ncc+1-j];
-//			}
-//			if(i > (Ncc/2) && j <= (Ncc/2)) {
-//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+j];
-//			}
-//
-//			if(i > (Ncc/2) && j > (Ncc/2)) {
-//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+Ncc+1-j];
-//			}
-//		}
-//	}
-//}
 //--------------------------------------------------------------------
 void kernel_green_iso(int Ncc, double *in, double Dcell) {
 	int i,j;
@@ -201,108 +271,6 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 	}
 }
 //--------------------------------------------------------------------
-////--------------------------------------------------------------------
-//void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
-//	int i,j;
-//	double x,y,r;
-//	double epsilon = sqrt(2.0)*Dcell;
-//
-//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
-//			x = (double)(i)*Dcell;
-//			y = (double)(j)*Dcell;
-//			r = sqrt(x*x+y*y+epsilon*epsilon);
-//
-//			in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
-//			in2[i*Ncc+j] = (-2.0*x*y)/(M_PI*r*r*r*r);
-//		}
-//
-//		else {
-//			if(i <= Ncc/2 && j > (Ncc/2)) {
-//				in1[i*Ncc+j]  =  in1[i*Ncc+Ncc+1-j];
-//				in2[i*Ncc+j]  = -in2[i*Ncc+Ncc+1-j];
-//			}
-//			if(i > (Ncc/2) && j <= (Ncc/2)) {
-//				in1[i*Ncc+j]  =  in1[(Ncc+1-i)*Ncc+j];
-//				in2[i*Ncc+j]  = -in2[(Ncc+1-i)*Ncc+j];
-//			}
-//
-//			if(i > (Ncc/2) && j > (Ncc/2)) {
-//				in1[i*Ncc+j]  =  in1[(Ncc+1-i)*Ncc+Ncc+1-j];
-//				in2[i*Ncc+j]  =  in2[(Ncc+1-i)*Ncc+Ncc+1-j];
-//			}
-//		}
-//	}
-//}
-////--------------------------------------------------------------------
-//void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
-//	int i,j;
-//	double x,y,r;
-//	double epsilon = sqrt(2.0)*Dcell;
-//
-//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
-//			x = (double)(i)*Dcell;
-//			y = (double)(j)*Dcell;
-//			r = sqrt(x*x+y*y+epsilon*epsilon);
-//
-//			in1[i*Ncc+j] = x/(M_PI*r*r);
-//			in2[i*Ncc+j] = y/(M_PI*r*r);
-//		}
-//		else {
-//			if(i <= Ncc/2 && j > (Ncc/2)) {
-//				in1[i*Ncc+j]  =  in1[i*Ncc+Ncc+1-j];
-//				in2[i*Ncc+j]  = -in2[i*Ncc+Ncc+1-j];
-//			}
-//			if(i > (Ncc/2) && j <= (Ncc/2)) {
-//				in1[i*Ncc+j]  = -in1[(Ncc+1-i)*Ncc+j];
-//				in2[i*Ncc+j]  =  in2[(Ncc+1-i)*Ncc+j];
-//			}
-//
-//			if(i > (Ncc/2) && j > (Ncc/2)) {
-//				in1[i*Ncc+j]  = -in1[(Ncc+1-i)*Ncc+Ncc+1-j];
-//				in2[i*Ncc+j]  = -in2[(Ncc+1-i)*Ncc+Ncc+1-j];
-//			}
-//		}
-//	}
-//}
-////--------------------------------------------------------------------
-//void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
-//	int i,j;
-//	double x,y,r;
-//	double epsilon = 0.00000001*Dcell;
-//	double cnorm = 0.0;
-//
-//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-//		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
-//			x = (double)(i)*Dcell-0.5*Dcell;
-//			y = (double)(j)*Dcell-0.5*Dcell;
-//			r = sqrt(x*x+y*y+epsilon*epsilon);
-//
-//			in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
-//		}
-//		else {
-//			if(i <= Ncc/2 && j > (Ncc/2)) {
-//				in[i*Ncc+j] = in[i*Ncc+Ncc+1-j];
-//			}
-//			if(i > (Ncc/2) && j <= (Ncc/2)) {
-//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+j];
-//			}
-//
-//			if(i > (Ncc/2) && j > (Ncc/2)) {
-//				in[i*Ncc+j] = in[(Ncc+1-i)*Ncc+Ncc+1-j];
-//			}
-//		}
-//		cnorm += in[i*Ncc+j]*Dcell*Dcell;
-//	}
-//
-//	double ctotal = 0.0;
-//	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-//		in[i*Ncc+j] = in[i*Ncc+j]/cnorm;
-//		ctotal += in[i*Ncc+j]*Dcell*Dcell;
-//	}
-//}
-////--------------------------------------------------------------------
 void fftw_r2c_2d(double *in_real, fftw_complex *in_fft, long Ncell, double Dcell) {
 	long i,j;
 	long nh = Ncell/2+1;
@@ -460,6 +428,38 @@ void kappa_to_shears(double *kappa,double *shear1,double *shear2, int Ncc2,doubl
 	free(shear2_tmp);
 	free(shear1_iso);
 	free(shear2_iso);
+}
+//----------------------------------------------------------------------------------
+void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai) {
+
+	int Ncc2 = Ncc*2;
+	double * alpha1 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * alpha2 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * kappa = (double *)malloc(Ncc2*Ncc2*sizeof(double));
+	sdens_to_kappa(p_mass_in,sdens_in,Ncc,Dcell,zl,zs,kappa);
+	kappa_to_alphas(kappa,alpha1,alpha2,Ncc2,Dcell);
+
+	free(kappa);
+
+    double * a11 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * a12 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * a21 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * a22 = (double *)malloc(Ncc*Ncc*sizeof(double));
+
+	lanczos_diff_2_tag(alpha1,alpha2,a11,a12,a21,a22,Dcell,Ncc,-1);
+	free(alpha1);
+	free(alpha2);
+
+	int i,j,index;
+	for (i=0;i<Ncc;i++) for (j=0;j<Ncc;j++) {
+		index = i*Ncc+j;
+		kappai[index] = 0.5*(a11[index]+a22[index]);
+	}
+
+    free(a11);
+    free(a12);
+    free(a21);
+    free(a22);
 }
 //--------------------------------------------------------------------
 void calculate_mu(double *kappac,double *shear1,double *shear2, int Ncc, double *mu) {
