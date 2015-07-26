@@ -4,6 +4,71 @@
 #include <fftw3.h>
 #include "mycosmology.h"
 //--------------------------------------------------------------------
+void lanczos_diff_1_tag(double *mi, double *m1, double *m2, double Dcell, int Ncc, int dif_tag) {
+	long i_m3,i_p3,j_m3,j_p3,i_m2,i_p2,j_m2,j_p2,i_m1,j_m1,i_p1,j_p1,i,j;
+	long index;
+
+	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+		if (i==0) {i_m1 = Ncc-1;i_m2 = Ncc-2;i_m3 = Ncc-3;}
+		else if (i==1) {i_m1 = 0;i_m2 = Ncc-1;i_m3 = Ncc-2;}
+		else if (i==2) {i_m1 = 1;i_m2 = 0;i_m3 = Ncc-1;}
+		else {i_m1 = i-1;i_m2 = i-2;i_m3 = i-3;}
+		if (j==0) {j_m1 = Ncc-1;j_m2 = Ncc-2;j_m3 = Ncc-3;}
+		else if (j==1) {j_m1 = 0;j_m2 = Ncc-1;j_m3 = Ncc-2;}
+		else if (j==2) {j_m1 = 1;j_m2 = 0;j_m3 = Ncc-1;}
+		else {j_m1 = j-1;j_m2 = j-2;j_m3 = j-3;}
+		if (i==Ncc-1) {i_p1 = 0;i_p2 = 1;i_p3 = 2;}
+		else if (i==Ncc-2) {i_p1 = Ncc-1;i_p2 = 0;i_p3 = 1;}
+		else if (i==Ncc-3) {i_p1 = Ncc-2;i_p2 = Ncc-1;i_p3 = 0;}
+		else {i_p1 = i+1;i_p2 = i+2;i_p3 = i+3;}
+		if (j==Ncc-1) {j_p1 = 0;j_p2 = 1;j_p3 = 2;}
+		else if (j==Ncc-2) {j_p1 = Ncc-1;j_p2 = 0;j_p3 = 1;}
+		else if (j==Ncc-2) {j_p1 = Ncc-2;j_p2 = Ncc-1;j_p3 = 0;}
+		else {j_p1 = j+1;j_p2 = j+2;j_p3 = j+3;}
+
+		index = i*Ncc+j;
+
+        if (dif_tag==-1) {
+            m1[index] = (mi[i_p1*Ncc+j]-mi[i_m1*Ncc+j])/(2.0*Dcell);
+            m2[index] = (mi[i*Ncc+j_p1]-mi[i*Ncc+j_m1])/(2.0*Dcell);
+        }
+
+		if (dif_tag==0) {
+			m1[index] = (mi[i_p1*Ncc+j]-mi[i_m1*Ncc+j])*2.0/3.0/Dcell
+			    	  - (mi[i_p2*Ncc+j]-mi[i_m2*Ncc+j])/12.0/Dcell;
+			m2[index] = (mi[i*Ncc+j_p1]-mi[i*Ncc+j_m1])*2.0/3.0/Dcell
+					  - (mi[i*Ncc+j_p2]-mi[i*Ncc+j_m2])/12.0/Dcell;
+		}
+
+		if (dif_tag==1) {
+			m1[index] =(1.0*(mi[i_p1*Ncc+j]-mi[i_m1*Ncc+j])
+			  		  + 2.0*(mi[i_p2*Ncc+j]-mi[i_m2*Ncc+j])
+			   		  + 3.0*(mi[i_p3*Ncc+j]-mi[i_m3*Ncc+j]))/(28.0*Dcell);
+			m2[index] =(1.0*(mi[i*Ncc+j_p1]-mi[i*Ncc+j_m1])
+			  		  + 2.0*(mi[i*Ncc+j_p2]-mi[i*Ncc+j_m2])
+			   		  + 3.0*(mi[i*Ncc+j_p3]-mi[i*Ncc+j_m3]))/(28.0*Dcell);
+		}
+
+		if (dif_tag==2) {
+			m1[index] =(5.0*(mi[i_p1*Ncc+j]-mi[i_m1*Ncc+j])
+			  	   	  + 4.0*(mi[i_p2*Ncc+j]-mi[i_m2*Ncc+j])
+			     	  + 1.0*(mi[i_p3*Ncc+j]-mi[i_m3*Ncc+j]))/(32.0*Dcell);
+			m2[index] =(5.0*(mi[i*Ncc+j_p1]-mi[i*Ncc+j_m1])
+			  		  + 4.0*(mi[i*Ncc+j_p2]-mi[i*Ncc+j_m2])
+			  		  + 1.0*(mi[i*Ncc+j_p3]-mi[i*Ncc+j_m3]))/(32.0*Dcell);
+		}
+
+		if (dif_tag==3) {
+			m1[index] = (58.0*(mi[i_p1*Ncc+j]-mi[i_m1*Ncc+j])
+			            + 67.0*(mi[i_p2*Ncc+j]-mi[i_m2*Ncc+j])
+			  	   	 	+ 22.0*(mi[i_p3*Ncc+j]-mi[i_m3*Ncc+j]))/(252.0*Dcell);
+			m2[index] = (58.0*(mi[i*Ncc+j_p1]-mi[i*Ncc+j_m1])
+					    + 67.0*(mi[i*Ncc+j_p2]-mi[i*Ncc+j_m2])
+						- 22.0*(mi[i*Ncc+j_p3]-mi[i*Ncc+j_m3]))/(252.0*Dcell);
+		}
+	}
+}
+//--------------------------------------------------------------------
 void lanczos_diff_2_tag(double *m1, double *m2, double *m11, double *m12, double *m21, double *m22, double Dcell, int Ncc, int dif_tag) {
     int i_m3,i_p3,j_m3,j_p3,i_m2,i_p2,j_m2,j_p2,i_m1,j_m1,i_p1,j_p1,i,j;
     int index;
@@ -145,7 +210,7 @@ void sdens_to_kappac(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
 void kernel_green_iso(int Ncc, double *in, double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = sqrt(2.0)*Dcell;
+	double epsilon = sqrt(2.0)*Dcell*0.0000000001;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
@@ -173,7 +238,7 @@ void kernel_green_iso(int Ncc, double *in, double Dcell) {
 void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = sqrt(2.0)*Dcell;
+	double epsilon = sqrt(2.0)*Dcell*0.000000000001;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
@@ -243,8 +308,8 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
-			x = (double)(i)*Dcell-0.5*Dcell;
-			y = (double)(j)*Dcell-0.5*Dcell;
+			x = (double)(i)*Dcell;
+			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
 
 			in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
@@ -433,33 +498,36 @@ void kappa_to_shears(double *kappa,double *shear1,double *shear2, int Ncc2,doubl
 void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai) {
 
 	int Ncc2 = Ncc*2;
-	double * alpha1 = (double *)malloc(Ncc*Ncc*sizeof(double));
-	double * alpha2 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * phi = (double *)malloc(Ncc*Ncc*sizeof(double));
 	double * kappa = (double *)malloc(Ncc2*Ncc2*sizeof(double));
 	sdens_to_kappa(p_mass_in,sdens_in,Ncc,Dcell,zl,zs,kappa);
-	kappa_to_alphas(kappa,alpha1,alpha2,Ncc2,Dcell);
-
+	kappa_to_phi(kappa,phi,Ncc2,Dcell);
 	free(kappa);
 
-    double * a11 = (double *)malloc(Ncc*Ncc*sizeof(double));
-    double * a12 = (double *)malloc(Ncc*Ncc*sizeof(double));
-    double * a21 = (double *)malloc(Ncc*Ncc*sizeof(double));
-    double * a22 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * phi1 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * phi2 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	lanczos_diff_1_tag(phi,phi1,phi2,Dcell,Ncc,0);
+	free(phi);
 
-	lanczos_diff_2_tag(alpha1,alpha2,a11,a12,a21,a22,Dcell,Ncc,-1);
-	free(alpha1);
-	free(alpha2);
+    double * phi11 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi12 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi21 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi22 = (double *)malloc(Ncc*Ncc*sizeof(double));
+
+	lanczos_diff_2_tag(phi1,phi2,phi11,phi12,phi21,phi22,Dcell,Ncc,0);
+	free(phi1);
+	free(phi2);
 
 	int i,j,index;
 	for (i=0;i<Ncc;i++) for (j=0;j<Ncc;j++) {
 		index = i*Ncc+j;
-		kappai[index] = 0.5*(a11[index]+a22[index]);
+		kappai[index] = 0.5*(phi11[index]+phi22[index]);
 	}
 
-    free(a11);
-    free(a12);
-    free(a21);
-    free(a22);
+    free(phi11);
+    free(phi12);
+    free(phi21);
+    free(phi22);
 }
 //--------------------------------------------------------------------
 void calculate_mu(double *kappac,double *shear1,double *shear2, int Ncc, double *mu) {
