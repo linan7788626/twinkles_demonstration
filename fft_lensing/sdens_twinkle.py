@@ -280,13 +280,14 @@ def main():
 
     sdens = lpar_nie_kappa(xi1,xi2,lpar)
 
-    phii,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
+    #phii,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
 
-    phi12,phi11 = np.gradient(ai1,dsx)
-    phi22,phi21 = np.gradient(ai2,dsx)
-    sdens = 0.5*(phi11+phi22)
 
     phi,alpha1,alpha2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+
+    phi12,phi11 = np.gradient(alpha2,dsx)
+    phi22,phi21 = np.gradient(alpha1,dsx)
+    kappai = 0.5*(phi11+phi22)
 #--------------------------------------------------------------------
     #sdens_pad = np.zeros((nnn*2,nnn*2))
     #sdens_pad[nnn/2:nnn/2*3,nnn/2:nnn/2*3] = sdens
@@ -306,17 +307,17 @@ def main():
     #pl.contourf(xi1,xi2,np.log10(kappas))
     #pl.colorbar()
 
-    #levels = [-0.8,-0.4,0.0,0.4,0.8,1.2,1.6,2.0]
-    #pl.figure()
-    #pl.contour(xi1,xi2,np.log10(kappai),levels,colors=['k',])
-    #pl.contour(xi1,xi2,np.log10(kappas),levels,colors=['r',])
-    #pl.show()
-
-    levels = [3.0,2.5,2.0,1.5,1.0,0.5,0.0,-0.5]
+    levels = [-0.8,-0.4,0.0,0.4,0.8,1.2,1.6,2.0]
     pl.figure()
-    pl.contour(xi1,xi2,phi,levels,colors=['k',])
-    pl.contour(xi1,xi2,phii,levels,colors=['r',])
+    pl.contour(xi1,xi2,np.log10(kappai),levels,colors=['k',])
+    pl.contour(xi1,xi2,np.log10(sdens),levels,colors=['r',])
     pl.show()
+
+    #levels = [3.0,2.5,2.0,1.5,1.0,0.5,0.0,-0.5]
+    #pl.figure()
+    #pl.contour(xi1,xi2,phi,levels,colors=['k',])
+    #pl.contour(xi1,xi2,phii,levels,colors=['r',])
+    #pl.show()
 
     #levels = [-1.6,-1.2,-0.8,0.4,0.0,0.4,0.8,1.2,1.6]
     #pl.figure()
