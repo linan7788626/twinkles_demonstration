@@ -552,3 +552,70 @@ void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td
 		td[index] = Kc*((alpha1[index]*alpha1[index]+alpha2[index]*alpha2[index])-phi[index]);
 	}
 }
+//----------------------------------------------------------------------------------
+void sdens_to_wl(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai, double *shear1, double *shear2) {
+
+	int Ncc2 = Ncc*2;
+	double * phi = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * kappa = (double *)malloc(Ncc2*Ncc2*sizeof(double));
+	sdens_to_kappa(p_mass_in,sdens_in,Ncc,Dcell,zl,zs,kappa);
+	kappa_to_phi(kappa,phi,Ncc2,Dcell);
+	free(kappa);
+
+	double * phi1 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * phi2 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	lanczos_diff_1_tag(phi,phi1,phi2,Dcell,Ncc,0);
+	free(phi);
+
+    double * phi11 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi12 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi21 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi22 = (double *)malloc(Ncc*Ncc*sizeof(double));
+
+	lanczos_diff_2_tag(phi1,phi2,phi11,phi12,phi21,phi22,Dcell,Ncc,0);
+	free(phi1);
+	free(phi2);
+
+	int i,j,index;
+	for (i=0;i<Ncc;i++) for (j=0;j<Ncc;j++) {
+		index = i*Ncc+j;
+		kappai[index] = 0.5*(phi11[index]+phi22[index]);
+		shear1[index] = 0.5*(phi11[index]-phi22[index]);
+		shear2[index] = 0.5*(phi21[index]+phi12[index]);
+	}
+
+    free(phi11);
+    free(phi12);
+    free(phi21);
+    free(phi22);
+}
+//----------------------------------------------------------------------------------
+void sdens_to_sl(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *td,double *alpha1,double *alpha2,double * mu) {
+
+	int Ncc2 = Ncc*2;
+	double * phi = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * kappa = (double *)malloc(Ncc2*Ncc2*sizeof(double));
+	sdens_to_kappa(p_mass_in,sdens_in,Ncc,Dcell,zl,zs,kappa);
+	kappa_to_phi(kappa,phi,Ncc2,Dcell);
+	kappa_to_alphas(kappa,alpha1,alpha2,Ncc2,Dcell);
+	free(kappa);
+
+	//double * kappai = (double *)malloc(Ncc*Ncc*sizeof(double));
+	//sdens_to_kappai(p_mass_in,sdens_in,Ncc,Dcell,zl,zs,kappai);
+	//double * shear1 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	//double * shear2 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	//kappa_to_shears(kappa,shear1,shear2,Ncc2,Dcell);
+
+	double * kappai = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * shear1 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	double * shear2 = (double *)malloc(Ncc*Ncc*sizeof(double));
+	sdens_to_wl(p_mass_in,sdens_in,Ncc,Dcell,zl,zs,kappai,shear1,shear2);
+	calculate_mu(kappai,shear1,shear2,Ncc,mu);
+	free(kappai);
+	free(shear1);
+	free(shear2);
+
+	calculate_td(phi,alpha1,alpha2,Ncc,td);
+	free(phi);
+}
+//----------------------------------------------------------------------------------

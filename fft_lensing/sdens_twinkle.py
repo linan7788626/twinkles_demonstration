@@ -246,7 +246,7 @@ def lens_galaxies(xi1,xi2,glpar):
 
 def main():
 
-    nnn = 1024
+    nnn = 512
     boxsize = 4.0
     zl = 0.1
     zs = 1.0

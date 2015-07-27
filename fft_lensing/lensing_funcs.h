@@ -22,3 +22,6 @@ void kappa_to_shears(double *kappa,double *shear1,double *shear2, int Ncc2,doubl
 
 void calculate_mu(double *kappa,double *shear1,double *shear2, int Ncc, double *mu);
 void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td);
+
+void sdens_to_wl(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai, double *shear1, double *shear2);
+void sdens_to_sl(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *td,double *alpha1,double *alpha2,double * mu);
