@@ -595,6 +595,27 @@ void calculate_mu(double *kappac,double *shear1,double *shear2, int Ncc, double 
 	}
 }
 //--------------------------------------------------------------------
+void calculate_mu_mp(double *alpha1,double *alpha2,int Ncc,double Dcell,double *mu) {
+
+    double * phi11 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi12 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi21 = (double *)malloc(Ncc*Ncc*sizeof(double));
+    double * phi22 = (double *)malloc(Ncc*Ncc*sizeof(double));
+
+	lanczos_diff_2_tag(alpha1,alpha2,phi11,phi12,phi21,phi22,Dcell,Ncc,1);
+
+	int i,j,index;
+	for (i=0;i<Ncc;i++) for (j=0;j<Ncc;j++) {
+		index = i*Ncc+j;
+		mu[index] = 1.0/(1.0-(phi11[index]+phi22[index])+phi11[index]*phi22[index]-phi12[index]*phi21[index]);
+	}
+
+	free(phi11);
+	free(phi12);
+	free(phi21);
+	free(phi22);
+}
+//--------------------------------------------------------------------
 void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td) {
 	double Kc = 1.0;
 	//Kc = (1.0+zl)/c*(Dl*Ds/Dls)
