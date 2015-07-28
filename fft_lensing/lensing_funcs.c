@@ -166,6 +166,38 @@ void lanczos_diff_2_tag(double *m1, double *m2, double *m11, double *m12, double
         }
     }
 }
+//--------------------------------------------------------------------
+void write_2_signals(char *out1,char *out2,double *in1,double *in2, int Ncc) {
+    long i,j;
+    long index;
+    FILE *f1,*f2;
+
+    f1 =fopen(out1,"wb");
+    f2 =fopen(out2,"wb");
+
+    for (i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+        index = i*Ncc+j;
+
+        fwrite(&in1[index],sizeof(double),1,f1);
+        fwrite(&in2[index],sizeof(double),1,f2);
+    }
+    fclose(f1);
+    fclose(f2);
+}
+//--------------------------------------------------------------------
+void write_1_signal(char *out1,double *in1, int Ncc) {
+    long i,j;
+    long index;
+    FILE *f1;
+
+    f1 =fopen(out1,"wb");
+
+    for (i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
+        index = i*Ncc+j;
+        fwrite(&in1[index],sizeof(double),1,f1);
+    }
+    fclose(f1);
+}
 //----------------------------------------------------------------------------------
 void Loadin_grids_mesh(double boxsize, double xc1, double xc2, int Ncc, double *posx1, double *posx2) {
 	double dsx = boxsize/(double)Ncc;
@@ -210,35 +242,42 @@ void sdens_to_kappac(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
 void kernel_green_iso(int Ncc, double *in, double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = sqrt(2.0)*Dcell*0.0000000001;
+	double epsilon = Dcell*0.0000000001;
+	double halfbox = Dcell*(double)Ncc/2.0;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-		if(i <(Ncc/2)  && j <(Ncc/2)) {
+		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
+
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
-
 			in[i*Ncc+j] = 1.0/M_PI*log(r);
+
+		    //if(r > halfbox) {
+			//	in[i*Ncc+j] = 0.0;
+		    //}
 		}
 		else {
-			if(i < Ncc/2 && j >= (Ncc/2)) {
+			if(i <= Ncc/2 && j > (Ncc/2)) {
 				in[i*Ncc+j] = in[i*Ncc+(Ncc-j)];
 			}
-			if(i >= (Ncc/2) && j < (Ncc/2)) {
+			if(i > (Ncc/2) && j <= (Ncc/2)) {
 				in[i*Ncc+j] = in[(Ncc-i)*Ncc+j];
 			}
 
-			if(i >= (Ncc/2) && j >= (Ncc/2)) {
+			if(i > (Ncc/2) && j > (Ncc/2)) {
 				in[i*Ncc+j] = in[(Ncc-i)*Ncc+(Ncc-j)];
 			}
 		}
 	}
+	//write_1_signal("out_iso.bin",in,Ncc);
 }
 //--------------------------------------------------------------------
 void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = sqrt(2.0)*Dcell*0.000000000001;
+	double epsilon = Dcell*0.000000000001;
+	double halfbox = Dcell*(double)Ncc/2.0;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
@@ -248,6 +287,11 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 
 			in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
 			in2[i*Ncc+j] = (-2.0*x*y)/(M_PI*r*r*r*r);
+
+		    if(r > halfbox) {
+				in1[i*Ncc+j] = 0.0;
+				in2[i*Ncc+j] = 0.0;
+		    }
 		}
 
 		else {
@@ -271,28 +315,34 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = sqrt(2.0)*Dcell*0.00000000001;
+	double epsilon = Dcell*0.00000000001;
+	double halfbox = Dcell*(double)Ncc/2.0;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
-		if(i <(Ncc/2)  && j <(Ncc/2)) {
+		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
 			r = sqrt(x*x+y*y+epsilon*epsilon);
 
 			in1[i*Ncc+j] = x/(M_PI*r*r);
 			in2[i*Ncc+j] = y/(M_PI*r*r);
+
+		    if(r > halfbox) {
+				in1[i*Ncc+j] = 0.0;
+				in2[i*Ncc+j] = 0.0;
+		    }
 		}
 		else {
-			if(i < Ncc/2 && j >= (Ncc/2)) {
+			if(i <= Ncc/2 && j > (Ncc/2)) {
 				in1[i*Ncc+j]  =  in1[i*Ncc+(Ncc-j)];
 				in2[i*Ncc+j]  = -in2[i*Ncc+(Ncc-j)];
 			}
-			if(i >= (Ncc/2) && j < (Ncc/2)) {
+			if(i > (Ncc/2) && j <= (Ncc/2)) {
 				in1[i*Ncc+j]  = -in1[(Ncc-i)*Ncc+j];
 				in2[i*Ncc+j]  =  in2[(Ncc-i)*Ncc+j];
 			}
 
-			if(i >= (Ncc/2) && j >= (Ncc/2)) {
+			if(i > (Ncc/2) && j > (Ncc/2)) {
 				in1[i*Ncc+j]  = -in1[(Ncc-i)*Ncc+(Ncc-j)];
 				in2[i*Ncc+j]  = -in2[(Ncc-i)*Ncc+(Ncc-j)];
 			}
@@ -305,6 +355,7 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 	double x,y,r;
 	double epsilon = 0.00000001*Dcell;
 	double cnorm = 0.0;
+	double halfbox = Dcell*(double)Ncc/2.0;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
@@ -313,6 +364,10 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 			r = sqrt(x*x+y*y+epsilon*epsilon);
 
 			in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
+
+		    //if(r > halfbox) {
+			//	in[i*Ncc+j] = 0.0;
+		    //}
 		}
 		else {
 			if(i < Ncc/2 && j >= (Ncc/2)) {
@@ -506,7 +561,7 @@ void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
 
 	double * phi1 = (double *)malloc(Ncc*Ncc*sizeof(double));
 	double * phi2 = (double *)malloc(Ncc*Ncc*sizeof(double));
-	lanczos_diff_1_tag(phi,phi1,phi2,Dcell,Ncc,0);
+	lanczos_diff_1_tag(phi,phi1,phi2,Dcell,Ncc,1);
 	free(phi);
 
     double * phi11 = (double *)malloc(Ncc*Ncc*sizeof(double));
@@ -514,7 +569,7 @@ void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
     double * phi21 = (double *)malloc(Ncc*Ncc*sizeof(double));
     double * phi22 = (double *)malloc(Ncc*Ncc*sizeof(double));
 
-	lanczos_diff_2_tag(phi1,phi2,phi11,phi12,phi21,phi22,Dcell,Ncc,0);
+	lanczos_diff_2_tag(phi1,phi2,phi11,phi12,phi21,phi22,Dcell,Ncc,1);
 	free(phi1);
 	free(phi2);
 

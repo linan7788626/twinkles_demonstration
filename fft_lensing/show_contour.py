@@ -246,120 +246,12 @@ def lens_galaxies(xi1,xi2,glpar):
 
 def main():
 
-    nnn = 512
-    boxsize = 4.0
-    zl = 0.1
-    zs = 1.0
-    p_mass = 1.0
-    dsx = boxsize/nnn
-    xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
-    xi2 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
-    xi1,xi2 = np.meshgrid(xi1,xi2)
+    data = np.fromfile("./out_iso.bin",dtype=np.double)
+    data = data.reshape((np.sqrt(len(data)),np.sqrt(len(data))))
     #----------------------------------------------------
-    # lens parameters for main halo
-    xlc1 = 0.0
-    xlc2 = 0.0
-    ql0 = 0.999999999999
-    rc0 = 0.000000000001
-    re0 = 1.0
-    phi0 = 0.0
-    lpar = np.asarray([xlc1, xlc2, re0, rc0, ql0, phi0])
-
-    lpars_list = []
-    lpars_list.append(lpar)
-    #----------------------------------------------------
-    sdens = lpar_nie_kappa(xi1,xi2,lpar)
-    pii,aii1,aii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
-
-    phi,phi1,phi2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
-
-    phi12,phi11 = np.gradient(phi2,dsx)
-    phi22,phi21 = np.gradient(phi1,dsx)
-    kappac = 0.5*(phi11+phi22)
-    ##----------------------------------------------------
-    ## lens parameters for main halo
-    #xls1 = 0.7
-    #xls2 = 0.8
-    #qls = 0.999999999999
-    #rcs = 0.000000000001
-    #res = 0.5
-    #phis = 0.0
-    #lpars = np.asarray([xls1, xls2, res, rcs, qls, phis])
-    #lpars_list.append(lpars)
-
-    #sdens = lpar_nie_kappa(xi1,xi2,lpar)
-
-    #phii,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
-
-    #phi,alpha1,alpha2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
-
-    #phi12,phi11 = np.gradient(alpha2,dsx)
-    #phi22,phi21 = np.gradient(alpha1,dsx)
-    #kappai = 0.5*(phi11+phi22)
-#--------------------------------------------------------------------
-    #sdens_pad = np.zeros((nnn*2,nnn*2))
-    #sdens_pad[nnn/2:nnn/2*3,nnn/2:nnn/2*3] = sdens
-    #green_in = green_iso(nnn*2,dsx)
-    #phi,alpha1,alpha2,td,mu,kappas = fft_lensing_signals(sdens_pad,green_in,dsx)
-#--------------------------------------------------------------------
-
-    #Kc = 1.0
-    ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-    #tdi = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phii+np.median(phii-phi))
-
-    ##levels = [-1.6,-1.2,-0.8,-0.4,0.0,0.4,0.8,1.2,1.6]
-    #pl.figure()
-    #pl.contourf(xi1,xi2,np.log10(kappai))
-    #pl.colorbar()
-    #pl.figure()
-    #pl.contourf(xi1,xi2,np.log10(kappas))
-    #pl.colorbar()
-
     pl.figure()
-    pl.imshow((np.sqrt(phi1*phi1+phi2*phi2)-np.sqrt(aii1*aii1+aii2*aii2))/np.sqrt(phi1*phi1+phi2*phi2), aspect='auto', cmap=pl.get_cmap(pl.cm.jet),vmin=-0.01, vmax=0.01 )
+    pl.contourf(data)
     pl.colorbar()
-
-    ##levels = [-0.8,-0.4,0.0,0.4,0.8,1.2,1.6,2.0]
-    #pl.figure()
-    ##pl.contourf(xi1,xi2,np.log10(kappac),levels)
-    ##pl.colorbar()
-    ##print np.max((kappac-sdens)/sdens),np.mean((kappac-sdens)/sdens)
-    #pl.imshow((kappac-sdens)/sdens, aspect='auto', cmap=pl.get_cmap(pl.cm.jet),vmin=-0.01, vmax=0.01)
-    #pl.colorbar()
-    ##pl.contour(xi1,xi2,np.log10(kappac),levels,colors=['k',])
-    ##pl.contour(xi1,xi2,np.log10(sdens),levels,colors=['r',])
-    ##pl.show()
-
-    ##levels = [3.0,2.5,2.0,1.5,1.0,0.5,0.0,-0.5]
-    #pl.figure()
-    ##pl.contour(xi1,xi2,phi,levels,colors=['k',])
-    ##pl.contour(xi1,xi2,pii,levels,colors=['r',])
-    ##pl.imshow((phi-(np.median(phi-pii))-pii)/phi, aspect='auto', cmap=pl.get_cmap(pl.cm.jet),vmin=-0.01, vmax=0.01)
-    #pl.imshow((phi-pii)/phi, aspect='auto', cmap=pl.get_cmap(pl.cm.jet))#,vmin=-0.01, vmax=0.01)
-    #pl.colorbar()
-    #pl.show()
-
-    #levels = [-1.6,-1.2,-0.8,0.4,0.0,0.4,0.8,1.2,1.6]
-    #pl.figure()
-    ##pl.contour(xi1,xi2,np.sqrt(alpha2**2.0+alpha1**2.0),levels,colors=['k',])
-    ##pl.contour(xi1,xi2,np.sqrt(phi2**2.0+phi1**2.0),levels,colors=['r',])
-    #pl.contour(xi1,xi2,np.sqrt(alpha2**2.0+alpha1**2.0),levels)
-    #pl.contour(xi1,xi2,np.sqrt(phi2**2.0+phi1**2.0),levels)
-    #pl.colorbar()
-
-    #levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
-    #pl.figure()
-    #pl.contour(xi1,xi2,tdi,levels,colors=['r',])
-    #pl.contour(xi1,xi2,td,levels,colors=['k',])
-
-
-    ##----------------------------------------------------
-    #data = np.fromfile("./out_iso.bin",dtype=np.double)
-    #data = data.reshape((np.sqrt(len(data)),np.sqrt(len(data))))
-    #pl.figure()
-    #pl.contourf(data)
-    #pl.colorbar()
-
     pl.show()
 
 
