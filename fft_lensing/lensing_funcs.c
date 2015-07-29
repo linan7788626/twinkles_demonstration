@@ -276,7 +276,7 @@ void kernel_green_iso(int Ncc, double *in, double Dcell) {
 void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 	int i,j;
 	double x,y,r;
-	double epsilon = Dcell*0.000000000001;
+	double epsilon = Dcell*0.000000000000;
 	double halfbox = Dcell*(double)Ncc/2.0;
 
 	for(i=0;i<Ncc;i++) for(j=0;j<Ncc;j++) {

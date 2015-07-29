@@ -244,6 +244,7 @@ def lens_galaxies(xi1,xi2,glpar):
 
     return g_lens
 
+#@profile
 def main():
 
     nnn = 512
@@ -269,13 +270,16 @@ def main():
     lpars_list.append(lpar)
     #----------------------------------------------------
     sdens = lpar_nie_kappa(xi1,xi2,lpar)
-    pii,aii1,aii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
+    #pii,aii1,aii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
 
-    phi,phi1,phi2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+    phi = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+    print np.shape(phi)
 
-    phi12,phi11 = np.gradient(phi2,dsx)
-    phi22,phi21 = np.gradient(phi1,dsx)
-    kappac = 0.5*(phi11+phi22)
+    phi2,phi1 = np.gradient(phi,dsx)
+
+    #phi12,phi11 = np.gradient(phi2,dsx)
+    #phi22,phi21 = np.gradient(phi1,dsx)
+    #kappac = 0.5*(phi11+phi22)
     ##----------------------------------------------------
     ## lens parameters for main halo
     #xls1 = 0.7
@@ -289,7 +293,7 @@ def main():
 
     #sdens = lpar_nie_kappa(xi1,xi2,lpar)
 
-    #phii,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
+    pii,pii1,pii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
 
     #phi,alpha1,alpha2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
 
@@ -303,9 +307,10 @@ def main():
     #phi,alpha1,alpha2,td,mu,kappas = fft_lensing_signals(sdens_pad,green_in,dsx)
 #--------------------------------------------------------------------
 
-    #Kc = 1.0
-    ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-    #tdi = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phii+np.median(phii-phi))
+    Kc = 1.0
+    #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+    td = Kc*(0.5*((phi1)**2.0+(phi2)**2.0)-pii)
+    tdi = Kc*(0.5*((pii1)**2.0+(pii2)**2.0)-pii)
 
     ##levels = [-1.6,-1.2,-0.8,-0.4,0.0,0.4,0.8,1.2,1.6]
     #pl.figure()
@@ -315,9 +320,9 @@ def main():
     #pl.contourf(xi1,xi2,np.log10(kappas))
     #pl.colorbar()
 
-    pl.figure()
-    pl.imshow((np.sqrt(phi1*phi1+phi2*phi2)-np.sqrt(aii1*aii1+aii2*aii2))/np.sqrt(phi1*phi1+phi2*phi2), aspect='auto', cmap=pl.get_cmap(pl.cm.jet),vmin=-0.01, vmax=0.01 )
-    pl.colorbar()
+    #pl.figure()
+    #pl.imshow((np.sqrt(phi1*phi1+phi2*phi2)-np.sqrt(aii1*aii1+aii2*aii2))/np.sqrt(phi1*phi1+phi2*phi2), aspect='auto', cmap=pl.get_cmap(pl.cm.jet),vmin=-0.01, vmax=0.01 )
+    #pl.colorbar()
 
     ##levels = [-0.8,-0.4,0.0,0.4,0.8,1.2,1.6,2.0]
     #pl.figure()
@@ -332,10 +337,10 @@ def main():
 
     ##levels = [3.0,2.5,2.0,1.5,1.0,0.5,0.0,-0.5]
     #pl.figure()
-    ##pl.contour(xi1,xi2,phi,levels,colors=['k',])
-    ##pl.contour(xi1,xi2,pii,levels,colors=['r',])
+    #pl.contour(xi1,xi2,phi,levels,colors=['k',])
+    #pl.contour(xi1,xi2,pii,levels,colors=['r',])
     ##pl.imshow((phi-(np.median(phi-pii))-pii)/phi, aspect='auto', cmap=pl.get_cmap(pl.cm.jet),vmin=-0.01, vmax=0.01)
-    #pl.imshow((phi-pii)/phi, aspect='auto', cmap=pl.get_cmap(pl.cm.jet))#,vmin=-0.01, vmax=0.01)
+    ##pl.imshow((phi-pii)/phi, aspect='auto', cmap=pl.get_cmap(pl.cm.jet))#,vmin=-0.01, vmax=0.01)
     #pl.colorbar()
     #pl.show()
 
@@ -347,10 +352,13 @@ def main():
     #pl.contour(xi1,xi2,np.sqrt(phi2**2.0+phi1**2.0),levels)
     #pl.colorbar()
 
-    #levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
-    #pl.figure()
-    #pl.contour(xi1,xi2,tdi,levels,colors=['r',])
-    #pl.contour(xi1,xi2,td,levels,colors=['k',])
+    levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
+    pl.figure()
+    pl.contourf(xi1,xi2,td,levels)#,colors=['k',])
+    pl.colorbar()
+    pl.figure()
+    pl.contourf(xi1,xi2,tdi,levels)#,colors=['r',])
+    pl.colorbar()
 
 
     ##----------------------------------------------------

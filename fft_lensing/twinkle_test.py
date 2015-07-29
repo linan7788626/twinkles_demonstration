@@ -3,6 +3,23 @@ import pygame
 from pygame.locals import *
 from sys import exit
 import numpy as np
+import libfft_lensing as lf
+
+def lpar_nie_kappa(xi1,xi2,lpar):
+    xc1 = lpar[0]
+    xc2 = lpar[1]
+    b = lpar[2]
+    s = lpar[3]
+    q = lpar[4]
+    rot = lpar[5]
+
+    x1,x2 = xy_rotate(xi1,xi2,xc1,xc2,rot)
+
+    wx = np.sqrt(q*q*(x1*x1+s*s)+x2*x2)
+
+    kappa = b/(2.0*wx)
+
+    return kappa
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -254,6 +271,10 @@ def main():
     ic = FPS/4.0
 
     i = 0
+
+    zl = 0.1
+    zs = 1.0
+    p_mass = 1.0
     while True:
         i = i+1
         for event in pygame.event.get():
@@ -335,6 +356,7 @@ def main():
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
         gpar = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
         #----------------------------------------------
+        sdens = lpar_nie_kappa(xi1,xi2,lpar)
 
 
         #phi,td,ai1,ai2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
@@ -362,20 +384,32 @@ def main():
 #>>>>>>> develop
         #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
-        phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+        #phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
+        phi = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+        ai2,ai1 = np.gradient(phi,dsx)
+        yi1 = xi1-ai1
+        yi2 = xi2-ai2
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
+
+
+    	Kc = 1.0
+    	#Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+    	td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
 
         base1[:,:,0] = g_image*256
         base1[:,:,1] = g_image*256
         base1[:,:,2] = g_image*256
 
-        sktd = td/td.max()*ic/2
-
-        itmp = (i+30-sktd)%(FPS)
-
+        #sktd = (td-td.min())/(td.max()-td.min())*ic/2
+        sktd = (td)/(1.5)*ic/2
+        itmp = (i+FPS/8-sktd)%(FPS)
         ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
-
         ratio[ratio<0]=0.0
+
+        #import pylab as pl
+        #pl.contourf(ratio)
+        #pl.colorbar()
+        #pl.show()
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)
