@@ -244,7 +244,7 @@ def lens_galaxies(xi1,xi2,glpar):
 
     return g_lens
 
-#@profile
+@profile
 def main():
 
     nnn = 512
@@ -272,10 +272,10 @@ def main():
     sdens = lpar_nie_kappa(xi1,xi2,lpar)
     #pii,aii1,aii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
 
-    phi = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
-    print np.shape(phi)
+    phi,phi1,phi2,td = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+    #print np.shape(phi)
 
-    phi2,phi1 = np.gradient(phi,dsx)
+    #phi2,phi1 = np.gradient(phi,dsx)
 
     #phi12,phi11 = np.gradient(phi2,dsx)
     #phi22,phi21 = np.gradient(phi1,dsx)
@@ -293,9 +293,9 @@ def main():
 
     #sdens = lpar_nie_kappa(xi1,xi2,lpar)
 
-    pii,pii1,pii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
+    #pii,pii1,pii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
 
-    #phi,alpha1,alpha2,td,mu,kappai = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+    #phi,alpha1,alpha2,td = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
 
     #phi12,phi11 = np.gradient(alpha2,dsx)
     #phi22,phi21 = np.gradient(alpha1,dsx)
@@ -307,10 +307,10 @@ def main():
     #phi,alpha1,alpha2,td,mu,kappas = fft_lensing_signals(sdens_pad,green_in,dsx)
 #--------------------------------------------------------------------
 
-    Kc = 1.0
-    #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-    td = Kc*(0.5*((phi1)**2.0+(phi2)**2.0)-pii)
-    tdi = Kc*(0.5*((pii1)**2.0+(pii2)**2.0)-pii)
+    #Kc = 1.0
+    ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
+    #td = Kc*(0.5*((phi1)**2.0+(phi2)**2.0)-pii)
+    #tdi = Kc*(0.5*((pii1)**2.0+(pii2)**2.0)-pii)
 
     ##levels = [-1.6,-1.2,-0.8,-0.4,0.0,0.4,0.8,1.2,1.6]
     #pl.figure()
@@ -352,13 +352,13 @@ def main():
     #pl.contour(xi1,xi2,np.sqrt(phi2**2.0+phi1**2.0),levels)
     #pl.colorbar()
 
-    levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
-    pl.figure()
-    pl.contourf(xi1,xi2,td,levels)#,colors=['k',])
-    pl.colorbar()
-    pl.figure()
-    pl.contourf(xi1,xi2,tdi,levels)#,colors=['r',])
-    pl.colorbar()
+    #levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
+    #pl.figure()
+    #pl.contourf(xi1,xi2,td,levels)#,colors=['k',])
+    #pl.colorbar()
+    #pl.figure()
+    #pl.contourf(xi1,xi2,tdi,levels)#,colors=['r',])
+    #pl.colorbar()
 
 
     ##----------------------------------------------------
@@ -368,7 +368,7 @@ def main():
     #pl.contourf(data)
     #pl.colorbar()
 
-    pl.show()
+    #pl.show()
 
 
 if __name__ == '__main__':

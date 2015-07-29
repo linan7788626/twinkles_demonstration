@@ -358,43 +358,11 @@ def main():
         #----------------------------------------------
         sdens = lpar_nie_kappa(xi1,xi2,lpar)
 
-
-        #phi,td,ai1,ai2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-        #yi1 = xi1-ai1
-        #yi2 = xi2-ai2
-        #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-
-        #phi,ai1,ai2 = multiple_nie_all(xi1,xi2,lpars_list)
-#<<<<<<< HEAD
-#        #Kc = 1.0
-#        ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-#        #td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
-#        #yi1 = xi1-ai1
-#        #yi2 = xi2-ai2
-#=======
-#        phi,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
-#        Kc = 1.0
-#        #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-#        td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
-#        yi1 = xi1-ai1
-#        yi2 = xi2-ai2
-#        g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-#
-#        #phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-#>>>>>>> develop
-        #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-
-        #phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-        phi = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
-        ai2,ai1 = np.gradient(phi,dsx)
-        yi1 = xi1-ai1
-        yi2 = xi2-ai2
+        #phi,ai1,ai2,td,mu,kappa = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+        phi,ai1,ai2,td = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+        yi1 = xi1-ai2
+        yi2 = xi2-ai1
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-
-
-    	Kc = 1.0
-    	#Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-    	td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
 
         base1[:,:,0] = g_image*256
         base1[:,:,1] = g_image*256
@@ -405,11 +373,6 @@ def main():
         itmp = (i+FPS/8-sktd)%(FPS)
         ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
         ratio[ratio<0]=0.0
-
-        #import pylab as pl
-        #pl.contourf(ratio)
-        #pl.colorbar()
-        #pl.show()
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)

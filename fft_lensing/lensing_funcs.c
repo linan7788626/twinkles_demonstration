@@ -561,7 +561,7 @@ void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
 
 	double * phi1 = (double *)malloc(Ncc*Ncc*sizeof(double));
 	double * phi2 = (double *)malloc(Ncc*Ncc*sizeof(double));
-	lanczos_diff_1_tag(phi,phi1,phi2,Dcell,Ncc,1);
+	lanczos_diff_1_tag(phi,phi1,phi2,Dcell,Ncc,-1);
 	free(phi);
 
     double * phi11 = (double *)malloc(Ncc*Ncc*sizeof(double));
@@ -569,7 +569,7 @@ void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, 
     double * phi21 = (double *)malloc(Ncc*Ncc*sizeof(double));
     double * phi22 = (double *)malloc(Ncc*Ncc*sizeof(double));
 
-	lanczos_diff_2_tag(phi1,phi2,phi11,phi12,phi21,phi22,Dcell,Ncc,1);
+	lanczos_diff_2_tag(phi1,phi2,phi11,phi12,phi21,phi22,Dcell,Ncc,-1);
 	free(phi1);
 	free(phi2);
 
