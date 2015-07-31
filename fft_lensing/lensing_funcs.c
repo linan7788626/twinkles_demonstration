@@ -250,12 +250,17 @@ void kernel_green_iso(int Ncc, double *in, double Dcell) {
 
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			r = sqrt(x*x+y*y+epsilon*epsilon);
-			in[i*Ncc+j] = 1.0/M_PI*log(r);
+			if (x == 0 && y == 0) {
+				r = epsilon;
+			}
+			else {
+				r = sqrt(x*x+y*y+epsilon*epsilon);
+				in[i*Ncc+j] = 1.0/M_PI*log(r);
 
-		    //if(r > halfbox) {
-			//	in[i*Ncc+j] = 0.0;
-		    //}
+		    	//if(r > halfbox) {
+				//	in[i*Ncc+j] = 0.0;
+		    	//}
+			}
 		}
 		else {
 			if(i <= Ncc/2 && j > (Ncc/2)) {
@@ -283,15 +288,20 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			r = sqrt(x*x+y*y+epsilon*epsilon);
+			if (x == 0 && y == 0) {
+				r = epsilon;
+			}
+			else {
+				r = sqrt(x*x+y*y+epsilon*epsilon);
 
-			in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
-			in2[i*Ncc+j] = (-2.0*x*y)/(M_PI*r*r*r*r);
+				in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
+				in2[i*Ncc+j] = (-2.0*x*y)/(M_PI*r*r*r*r);
 
-		    if(r > halfbox) {
-				in1[i*Ncc+j] = 0.0;
-				in2[i*Ncc+j] = 0.0;
-		    }
+		    	if(r > halfbox) {
+					in1[i*Ncc+j] = 0.0;
+					in2[i*Ncc+j] = 0.0;
+		    	}
+			}
 		}
 
 		else {
@@ -322,15 +332,20 @@ void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
 		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			r = sqrt(x*x+y*y+epsilon*epsilon);
+			if (x == 0 && y == 0) {
+				r = epsilon;
+			}
+			else {
+				r = sqrt(x*x+y*y+epsilon*epsilon);
 
-			in1[i*Ncc+j] = x/(M_PI*r*r);
-			in2[i*Ncc+j] = y/(M_PI*r*r);
+				in1[i*Ncc+j] = x/(M_PI*r*r);
+				in2[i*Ncc+j] = y/(M_PI*r*r);
 
-		    if(r > halfbox) {
-				in1[i*Ncc+j] = 0.0;
-				in2[i*Ncc+j] = 0.0;
-		    }
+		    	//if(r > halfbox) {
+				//	in1[i*Ncc+j] = 0.0;
+				//	in2[i*Ncc+j] = 0.0;
+		    	//}
+			}
 		}
 		else {
 			if(i <= Ncc/2 && j > (Ncc/2)) {
@@ -361,13 +376,18 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			r = sqrt(x*x+y*y+epsilon*epsilon);
+			if (x == 0 && y == 0) {
+				r = epsilon;
+			}
+			else {
+				r = sqrt(x*x+y*y+epsilon*epsilon);
 
-			in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
+				in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
 
-		    //if(r > halfbox) {
-			//	in[i*Ncc+j] = 0.0;
-		    //}
+		    	//if(r > halfbox) {
+				//	in[i*Ncc+j] = 0.0;
+		    	//}
+			}
 		}
 		else {
 			if(i < Ncc/2 && j >= (Ncc/2)) {

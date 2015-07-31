@@ -28,9 +28,15 @@ def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
     cdef np.ndarray phi = np.zeros((Nc,Nc),dtype=np.double)
     kappa_to_phi(<Dtype *>kappa.data, <Dtype *>phi.data,Nc2,dsx)
 
+
+    #cdef np.ndarray phi1 = np.zeros((Nc,Nc),dtype=np.double)
+    #cdef np.ndarray phi2 = np.zeros((Nc,Nc),dtype=np.double)
+    #phi1,phi2 = np.gradient(phi,dsx)
+
     cdef np.ndarray phi1 = np.zeros((Nc,Nc),dtype=np.double)
     cdef np.ndarray phi2 = np.zeros((Nc,Nc),dtype=np.double)
-    phi1,phi2 = np.gradient(phi,dsx)
+    kappa_to_alphas(<Dtype *>kappa.data,<Dtype *>phi1.data,<Dtype *>phi2.data,Nc2,dsx)
+
     Kc = 1.0
     #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
     cdef np.ndarray td = np.zeros((Nc,Nc),dtype=np.double)
