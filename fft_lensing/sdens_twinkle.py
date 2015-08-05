@@ -3,6 +3,7 @@ import numpy as np
 import libfft_lensing as lf
 import pylab as pl
 import scipy.signal as ss
+import pyfits
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -247,7 +248,14 @@ def lens_galaxies(xi1,xi2,glpar):
 #@profile
 def main():
 
-    nnn = 512
+    sdens = pyfits.getdata("/Users/uranus/Desktop/hlsp_frontier_model_abell2744_cats_v1_kappa.fits")
+
+    print type(sdens)
+    kappa = np.array(sdens,dtype='<d')
+
+    #sdens = sdens.astype('<double')
+
+    nnn = np.shape(kappa)[0]
     boxsize = 4.0
     zl = 0.1
     zs = 1.0
@@ -269,15 +277,19 @@ def main():
     lpars_list = []
     lpars_list.append(lpar)
     #----------------------------------------------------
-    sdens = lpar_nie_kappa(xi1,xi2,lpar)
-    pii,pii1,pii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
+    #sdens = lpar_nie_kappa(xi1,xi2,lpar)
+    #pii,pii1,pii2 = multiple_new_nie_all(xi1,xi2,lpars_list)
 
-    phi,phi1,phi2,td = lf.call_all_about_lensing(sdens,nnn,zl,zs,p_mass,dsx)
+    phi,phi1,phi2,td = lf.call_all_about_lensing(kappa,nnn,zl,zs,p_mass,dsx)
 
     phi2,phi1 = np.gradient(phi,dsx)
     phi12,phi11 = np.gradient(phi1,dsx)
     phi22,phi21 = np.gradient(phi2,dsx)
     kappac = 0.5*(phi11+phi22)
+    mu = 1.0/(1.0-(phi11+phi22)+phi11*phi22-phi12*phi21)
+    pl.figure(figsize=(10,10))
+    pl.contourf(mu)
+
     ##----------------------------------------------------
     ## lens parameters for main halo
     #xls1 = 0.7
@@ -350,8 +362,8 @@ def main():
     ##pl.contour(xi1,xi2,np.sqrt(pii2**2.0+pii1**2.0),levels,colors=['k',])
     ##pl.contour(xi1,xi2,np.sqrt(phi2**2.0+phi1**2.0),levels,colors=['r',])
     ##pl.colorbar()
-    pl.plot(np.sqrt(pii2**2.0+pii1**2.0)[nnn/2-1,:],'k-')
-    pl.plot(np.sqrt(phi2**2.0+phi1**2.0)[nnn/2-1,:],'r-')
+    #pl.plot(np.sqrt(pii2**2.0+pii1**2.0)[nnn/2-1,:],'k-')
+    #pl.plot(np.sqrt(phi2**2.0+phi1**2.0)[nnn/2-1,:],'r-')
 
 
     #levels = [-2.0,-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5,2.0]
