@@ -247,8 +247,11 @@ def lens_galaxies(xi1,xi2,glpar):
 
 #@profile
 def main():
+    import sys
+    filename = sys.argv[1]
 
-    sdens = pyfits.getdata("/Users/uranus/Desktop/hlsp_frontier_model_abell2744_cats_v1_kappa.fits")
+    #sdens = pyfits.getdata("/Users/uranus/Desktop/hlsp_frontier_model_abell2744_cats_v1_kappa.fits")
+    sdens = pyfits.getdata(filename)
 
     print type(sdens)
     kappa = np.array(sdens,dtype='<d')

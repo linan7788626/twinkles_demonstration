@@ -715,3 +715,37 @@ void sdens_to_sl(double p_mass_in, double* sdens_in, int Ncc, double Dcell, doub
 	free(phi);
 }
 //----------------------------------------------------------------------------------
+void find_critical_curve(double *mu,int nx,int ny,double* res) {
+
+	int i,j,index,sign_t=0;
+	int im1,ip1,jm1,jp1;
+	for (i = 0; i < nx; ++i) for (j = 0; j < ny; ++j) {
+		index = i*ny+j;
+		//im1 = i-1;
+		//ip1 = i+1;
+		//jm1 = j-1;
+		//jp1 = j+1;
+
+		//if (im1<0||jm1<0||ip1>(nx-1)||jp1>(ny-1)) continue;
+
+        if (i==0) {im1 = nx-1;}
+        else {im1 = i-1;}
+        if (j==0) {jm1 = ny-1;}
+        else {jm1 = j-1;}
+        if (i==nx-1) {ip1 = 0;}
+        else {ip1 = i+1;}
+        if (j==ny-1) {jp1 = 0;}
+        else {jp1 = j+1;}
+
+		sign_t = sign(mu[index])*(sign(mu[im1*ny+j])
+								 +sign(mu[i*ny+jm1])
+								 +sign(mu[ip1*ny+j])
+								 +sign(mu[i*ny+jp1]));
+		if (sign_t < 4) {
+			res[index] = 1.0;
+		}
+		else {
+			res[index] = 0.0;
+		}
+	}
+}

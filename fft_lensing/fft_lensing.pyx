@@ -17,6 +17,7 @@ cdef extern from "./lensing_funcs.h":
     void calculate_mu(double *kappa,double *shear1,double *shear2, int Ncc, double *mu)
     void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td)
     void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai)
+    void find_critical_curve(double *mu,int nx,int ny,double* res)
 
 def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
                            int Nc,double zl,double zs,double p_mass_in,double dsx):
@@ -43,6 +44,14 @@ def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
     td = Kc*(0.5*((phi1)**2.0+(phi2)**2.0)-phi)
 
     return phi,phi1,phi2,td#,mu#,kappai
+
+def call_find_critical_curve(np.ndarray[Dtype, ndim=2, mode="c"] mu):
+    nx,ny = np.shape(mu)
+    cdef np.ndarray res = np.zeros((nx,ny),dtype=np.double)
+
+    find_critical_curve(<Dtype *>mu.data,nx,ny,<Dtype *>res.data)
+
+    return res
 
 #def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
 #                           int Nc,double zl,double zs,double p_mass_in,double dsx):
