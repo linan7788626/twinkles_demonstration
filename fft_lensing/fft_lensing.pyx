@@ -18,6 +18,7 @@ cdef extern from "./lensing_funcs.h":
     void calculate_td(double *phi,double *alpha1,double *alpha2, int Ncc, double *td)
     void sdens_to_kappai(double p_mass_in, double* sdens_in, int Ncc, double Dcell, double zl, double zs, double *kappai)
     void find_critical_curve(double *mu,int nx,int ny,double* res)
+    void find_caustics(double *yi1,double *yi2,int npixels,int nx1,int nx2,double bsz,double *caustic)
 
 def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] sdens,
                            int Nc,double zl,double zs,double p_mass_in,double dsx):
@@ -50,6 +51,16 @@ def call_find_critical_curve(np.ndarray[Dtype, ndim=2, mode="c"] mu):
     cdef np.ndarray res = np.zeros((nx,ny),dtype=np.double)
 
     find_critical_curve(<Dtype *>mu.data,nx,ny,<Dtype *>res.data)
+
+    return res
+
+def call_find_caustic(np.ndarray[Dtype, ndim=1, mode="c"] yi1,
+                      np.ndarray[Dtype, ndim=1, mode="c"] yi2,
+                      int nx1,int nx2,double bsz):
+    npixels = len(yi1)
+    cdef np.ndarray res = np.zeros((nx1,nx2),dtype=np.double)
+
+    find_caustics(<Dtype *>yi1.data,<Dtype *>yi2.data,npixels,nx1,nx2,bsz,<Dtype *>res.data)
 
     return res
 

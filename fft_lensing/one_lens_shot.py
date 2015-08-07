@@ -386,29 +386,25 @@ def main():
         #----------------------------------------------
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
-        #base1[:,:,0] = g_image*256
-        #base1[:,:,1] = g_image*256
-        #base1[:,:,2] = g_image*256
+        base1[:,:,0] = g_image*256
+        base1[:,:,1] = g_image*256
+        base1[:,:,2] = g_image*256
 
-        #sktd = (td-td.min())/(td.max()-td.min())*ic/2
-        sktd = (td)/(1.5)*ic/2
-        itmp = (i+FPS/8-sktd)%(FPS)
-        ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
-        ratio[ratio<0]=0.0
+        ##sktd = (td-td.min())/(td.max()-td.min())*ic/2
+        #sktd = (td)/(1.5)*ic/2
+        #itmp = (i+FPS/8-sktd)%(FPS)
+        #ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
+        #ratio[ratio<0]=0.0
 
-        #base2[:,:,0] = g_lensimage*102*(1+ratio)
-        #base2[:,:,1] = g_lensimage*178*(1+ratio)
-        #base2[:,:,2] = g_lensimage*256*(1+ratio)
+        base2[:,:,0] = g_lensimage*102#*(1.0+ratio)/2
+        base2[:,:,1] = g_lensimage*178#*(1.0+ratio)/2
+        base2[:,:,2] = g_lensimage*256#*(1.0+ratio)/2
 
-        base2[:,:,0] = g_lensimage*102*(1.0+ratio)/2
-        base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
-        base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
+        base3[:,:,0] = critical.T*255
+        base3[:,:,1] = critical.T*0
+        base3[:,:,2] = critical.T*0
 
-        base3[:,:,0] = critical*255
-        base3[:,:,1] = critical*0
-        base3[:,:,2] = critical*0
-
-        base = base2+base3
+        base = base1+base2+base3
 
         #idx1 = wf>=base0
         #idx2 = wf<base0
