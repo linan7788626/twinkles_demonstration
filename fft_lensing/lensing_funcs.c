@@ -792,13 +792,11 @@ void find_caustics(double *yi1,double *yi2,int npixels,int nx1,int nx2,double bs
 
     forward_cic(img_in,yi1,yi2,bsz,bsz,nx1,nx2,npixels,caustic);
 
-	free(yi1);
-	free(yi2);
-
 	for (i = 0; i < nx1; ++i) for (j = 0; j < nx2; ++j){
 		index = i*nx2+j;
 		if (caustic[index]>0) {
 			caustic[index] = 1;
 		}
 	}
+	free(img_in);
 }

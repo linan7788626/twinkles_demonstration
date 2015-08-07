@@ -218,7 +218,7 @@ def main():
     sdens = pyfits.getdata(filename)
     kappa = np.array(sdens,dtype='<d')
     nnn = np.shape(kappa)[0]
-    boxsize = 4.0
+    boxsize = 400.0
 
     dsx = boxsize/nnn
     xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
@@ -241,6 +241,7 @@ def main():
     base1 = np.zeros((nnn,nnn,3),'uint8')
     base2 = np.zeros((nnn,nnn,3),'uint8')
     base3 = np.zeros((nnn,nnn,3),'uint8')
+    base4 = np.zeros((nnn,nnn,3),'uint8')
 
     #----------------------------------------------------
     # lens parameters for main halo
@@ -276,8 +277,7 @@ def main():
     base0[:,:,2] = g_lens*0
     x = 0
     y = 0
-    step = 1
-    gr_sig = 0.1
+    gr_sig = dsx*2
 
     LeftButton=0
 
@@ -294,14 +294,20 @@ def main():
     phi,phi1,phi2,td = lf.call_all_about_lensing(kappa,nnn,zl,zs,p_mass,dsx)
 
     phi2,phi1 = np.gradient(phi,dsx)
+
     phi12,phi11 = np.gradient(phi1,dsx)
     phi22,phi21 = np.gradient(phi2,dsx)
     #kappac = 0.5*(phi11+phi22)
     mu = 1.0/(1.0-(phi11+phi22)+phi11*phi22-phi12*phi21)
     critical = lf.call_find_critical_curve(mu)
 
-    yi1 = xi1-phi2
-    yi2 = xi2-phi1
+    yi1 = xi1-phi1
+    yi2 = xi2-phi2
+
+    idx = critical > 0.0
+    yif1 = yi1[idx]
+    yif2 = yi2[idx]
+    caustic = lf.call_find_caustic(yif1,yif2,nnn,nnn,boxsize)
 
     while True:
         i = i+1
@@ -318,60 +324,14 @@ def main():
             #----------------------------------------------
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4:
-                    gr_sig -= 0.1
+                    gr_sig -= 0.1*dsx
                     if gr_sig <0.01:
                         gr_sig = 0.01
 
                 elif event.button == 5:
-                    gr_sig += 0.01
+                    gr_sig += 0.01*dsx
                     if gr_sig >0.4:
                         gr_sig = 0.4
-
-
-
-        keys = pygame.key.get_pressed()  #checking pressed keys
-        if keys[pygame.K_RIGHT]:
-            x += step
-            if x > 500:
-                x = 500
-        if keys[pygame.K_LSHIFT] & keys[pygame.K_RIGHT]:
-            x += 30*step
-
-        if keys[pygame.K_LEFT]:
-            x -= step
-            if x < -500:
-                x = -500
-
-        if keys[pygame.K_LSHIFT] & keys[pygame.K_LEFT]:
-            x -= 30*step
-
-        if keys[pygame.K_UP]:
-            y -= step
-            if y < -500 :
-                y = -500
-        if keys[pygame.K_LSHIFT] & keys[pygame.K_UP]:
-            y -= 30*step
-
-        if keys[pygame.K_DOWN]:
-            y += step
-            if y > 500 :
-                y = 500
-        if keys[pygame.K_LSHIFT] & keys[pygame.K_DOWN]:
-            y += 30*step
-
-
-        #----------------------------------------------
-        if keys[pygame.K_MINUS]:
-            gr_sig -= 0.01
-            if gr_sig <0.01:
-                gr_sig = 0.01
-
-        if keys[pygame.K_EQUALS]:
-            gr_sig += 0.01
-            if gr_sig >0.1:
-                gr_sig = 0.1
-
-        #gr_sig = 0.005
 
         #----------------------------------------------
         #parameters of source galaxies.
@@ -404,7 +364,11 @@ def main():
         base3[:,:,1] = critical.T*0
         base3[:,:,2] = critical.T*0
 
-        base = base1+base2+base3
+        base4[:,:,0] = caustic.T*0
+        base4[:,:,1] = caustic.T*255
+        base4[:,:,2] = caustic.T*0
+
+        base = base1+base2+base3+base4
 
         #idx1 = wf>=base0
         #idx2 = wf<base0
