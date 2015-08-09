@@ -226,10 +226,10 @@ def main():
     xi1,xi2 = np.meshgrid(xi1,xi2)
 
     pygame.init()
-    FPS = 60
+    FPS = 30
     fpsClock = pygame.time.Clock()
 
-    screen = pygame.display.set_mode((512, 512), 0, 32)
+    screen = pygame.display.set_mode((nnn, nnn), 0, 32)
 
     pygame.display.set_caption("Gravitational Lensing Toy")
 
@@ -318,8 +318,8 @@ def main():
 
                 if event.buttons[LeftButton]:
                     rel = event.rel
-                    x += rel[0]
-                    y += rel[1]
+                    x += rel[0]*100
+                    y += rel[1]*100
 
             #----------------------------------------------
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -360,9 +360,9 @@ def main():
         base2[:,:,1] = g_lensimage*178#*(1.0+ratio)/2
         base2[:,:,2] = g_lensimage*256#*(1.0+ratio)/2
 
-        base3[:,:,0] = critical.T*255
-        base3[:,:,1] = critical.T*0
-        base3[:,:,2] = critical.T*0
+        base3[:,:,0] = critical*255
+        base3[:,:,1] = critical*0
+        base3[:,:,2] = critical*0
 
         base4[:,:,0] = caustic.T*0
         base4[:,:,1] = caustic.T*255
