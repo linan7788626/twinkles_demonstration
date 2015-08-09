@@ -229,7 +229,7 @@ def main():
     FPS = 60
     fpsClock = pygame.time.Clock()
 
-    screen = pygame.display.set_mode((nnn, nnn), 0, 32)
+    screen = pygame.display.set_mode((512, 512), 0, 32)
 
     pygame.display.set_caption("Gravitational Lensing Toy")
 
