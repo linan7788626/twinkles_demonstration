@@ -218,7 +218,7 @@ def main():
     #sdens = pyfits.getdata("/Users/uranus/Desktop/hlsp_frontier_model_abell2744_cats_v1_kappa.fits")
     sdens = pyfits.getdata(filename)
     kappa0 = np.array(sdens,dtype='<d')
-    kappa=congrid.congrid(kappa0,[512,512])
+    kappa=congrid.congrid(kappa0,[768,768])
     nnn = np.shape(kappa)[0]
     boxsize = 4.0
 
