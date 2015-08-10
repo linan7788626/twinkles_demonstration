@@ -5,6 +5,7 @@ from sys import exit
 import numpy as np
 import libfft_lensing as lf
 import pyfits
+import congrid
 
 def lpar_nie_kappa(xi1,xi2,lpar):
     xc1 = lpar[0]
@@ -216,9 +217,10 @@ def main():
 
     #sdens = pyfits.getdata("/Users/uranus/Desktop/hlsp_frontier_model_abell2744_cats_v1_kappa.fits")
     sdens = pyfits.getdata(filename)
-    kappa = np.array(sdens,dtype='<d')
+    kappa0 = np.array(sdens,dtype='<d')
+    kappa=congrid.congrid(kappa0,[512,512])
     nnn = np.shape(kappa)[0]
-    boxsize = 400.0
+    boxsize = 4.0
 
     dsx = boxsize/nnn
     xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
@@ -318,8 +320,8 @@ def main():
 
                 if event.buttons[LeftButton]:
                     rel = event.rel
-                    x += rel[0]*100
-                    y += rel[1]*100
+                    x += rel[0]
+                    y += rel[1]
 
             #----------------------------------------------
             if event.type == pygame.MOUSEBUTTONDOWN:
