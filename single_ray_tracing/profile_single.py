@@ -7,7 +7,7 @@ from libv5_cv import *
 
 @profile
 def main():
-	nnn = 512
+	nnn = 2048
 	nnw = 512
 	boxsize = 4.0
 	dsx = boxsize/nnn

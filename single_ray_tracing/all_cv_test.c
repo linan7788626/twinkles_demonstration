@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+//#include <omp.h>
 
 int sign(double x) {
 	if (x > 0) return 1;
@@ -383,7 +384,7 @@ void find_caustics(double *xi1,double *xi2,int nx1,int nx2,double dsx,double *cr
 
 	int i,j,index;
     int clen = 0;
-	int nfiner = 1;
+	int nfiner = 4;
 
 	for (i = 0; i < nx1; ++i) for (j = 0; j < nx2; ++j){
 		index = i*nx2+j;
@@ -427,7 +428,7 @@ void all_about_lensing(double *xi1,double *xi2,int nx1,int nx2,double * spar, in
 	double yi1,yi2;
 	int i,k,l;
 
-#pragma omp parallel num_threads(16)    \
+#pragma omp parallel num_threads(4)    \
     shared(xi1,xi2,nx1,nx2,lpar,nlpars,lpars,nlsubs,spar,nspars,spars,nssubs,s_image,g_lensimage) \
     private(i,yi1,yi2)
     {
@@ -437,12 +438,60 @@ void all_about_lensing(double *xi1,double *xi2,int nx1,int nx2,double * spar, in
 
 			yi1 = xi1[i]-al1[i];
 			yi2 = xi2[i]-al2[i];
-			gauss_2d(xi1[i],xi2[i],spar,&s_image[i]);
+			//gauss_2d(xi1[i],xi2[i],spar,&s_image[i]);
 			srcs_images(xi1[i],xi2[i],spar,nspars,spars,nssubs,&s_image[i]);
 			srcs_images(yi1,yi2,spar,nspars,spars,nssubs,&g_lensimage[i]);
 		}
     }
 //------------------------------------------------------------------------
+    double dsx = xi1[nx2+1]-xi1[0];
+    double * a11 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a12 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a21 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a22 = (double *)malloc(nx1*nx2*sizeof(double));
+
+	lanczos_diff_2_tag(al1,al2,a21,a22,a11,a12,dsx,nx1,-1);
+    free(al1);
+    free(al2);
+
+    double * imu = (double *)malloc(nx1*nx2*sizeof(double));
+	int index;
+	for (k = 0; k < nx1; k++) for (l = 0; l < nx2; l++) {
+		index = k*nx2+l;
+		imu[index] = (1.0-(a11[index]+a22[index])+a11[index]*a22[index]-a12[index]*a21[index]);
+	}
+
+	free(a11);
+	free(a12);
+	free(a21);
+	free(a22);
+
+    find_critical_curve(imu,nx1,nx2,critical);
+	free(imu);
+	find_caustics(xi1,xi2,nx1,nx2,dsx,critical,lpar,nlpars,lpars,nlsubs,caustic);
+}
+
+void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *g_lensimage){
+
+	double al1,al2;
+	double yi1,yi2;
+	int i,k,l;
+
+	tot_alphas(xi1,xi2,lpar,nlpars,lpars,nlsubs,&al1,&al2);
+
+	yi1 = xi1-al1;
+	yi2 = xi2-al2;
+
+	double s_image_tmp;
+	double l_image_tmp;
+	srcs_images(xi1,xi2,spar,nspars,spars,nssubs,&s_image_tmp);
+	srcs_images(yi1,yi2,spar,nspars,spars,nssubs,&l_image_tmp);
+	*s_image = s_image_tmp;
+	*g_lensimage = l_image_tmp;
+}
+//------------------------------------------------------------------------
+void cal_cc(double *xi1,double *xi2,double *al1,double *al2,int nx1,int nx2,double *lpar,int nlpars,double *lpars,int nlsubs,double *critical,double *caustic){
+	int i,j,k,l;
     double dsx = xi1[nx2+1]-xi1[0];
     double * a11 = (double *)malloc(nx1*nx2*sizeof(double));
     double * a12 = (double *)malloc(nx1*nx2*sizeof(double));

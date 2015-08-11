@@ -15,3 +15,6 @@ void lens_images(double *xi1,double *xi2,int nx1,int nx2,double *gpar,int npars,
 void mmbr_images(double *xi1,double *xi2,int nx1,int nx2,double *gpar,int npars,double *gpars,int nsubs,double *g_edge);
 void find_caustics(double *xi1,double *xi2,int nx1,int nx2,double dsx,double *critical,double *lpar,int nlpars,double *lpars,int nlsubs,double *caustic);
 void all_about_lensing(double *xi1,double *xi2,int nx1,int nx2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *g_lensimage,double *critical,double *caustic);
+
+void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *g_lensimage);
+void cal_cc(double *xi1,double *xi2,double *al1,double *al2,int nx1,int nx2,double *lpar,int nlpars,double *lpars,int nlsubs,double *critical,double *caustic);
