@@ -126,7 +126,7 @@ def example():
         truth = signal.fftconvolve(batched_data[i], kernel, 'valid')
         print(numpy.any(numpy.abs(result[i] - truth) > 0.0001))
 def example2():
-    nnn = 1024
+    nnn = 512
     convolver = CachedQueueConvolver()
     batched_data = numpy.random.rand(1,1,nnn,nnn)
     print numpy.shape(batched_data)
@@ -138,5 +138,16 @@ def example2():
     #print(numpy.any(numpy.abs(result - truth) > 0.0001))
     #print(result,truth)
 
+def example3():
+    import theano
+    nnn = 512
+    batched_data = numpy.random.rand(nnn,nnn)
+    kernel = numpy.random.rand(nnn,nnn)
+    res = theano.sandbox.cuda.fftconv.conv2d_fft(batched_data,kernel,border_mode='same')
+    truth = signal.fftconvolve(batched_data[0], kernel, 'same')
+    print(numpy.any(numpy.abs(result - truth) > 0.0001))
+    print(result,truth)
+
 if __name__ == "__main__":
-    example2()
+    #example2()
+    example3()
