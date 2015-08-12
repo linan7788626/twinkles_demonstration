@@ -250,17 +250,12 @@ void kernel_green_iso(int Ncc, double *in, double Dcell) {
 
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			if (x == 0 && y == 0) {
-				r = epsilon;
-			}
-			else {
-				r = sqrt(x*x+y*y+epsilon*epsilon);
-				in[i*Ncc+j] = 1.0/M_PI*log(r);
+			r = sqrt(x*x+y*y+epsilon*epsilon);
+			in[i*Ncc+j] = 1.0/M_PI*log(r);
 
-		    	//if(r > halfbox) {
-				//	in[i*Ncc+j] = 0.0;
-		    	//}
-			}
+		    //if(r > halfbox) {
+			//	in[i*Ncc+j] = 0.0;
+		    //}
 		}
 		else {
 			if(i <= Ncc/2 && j > (Ncc/2)) {
@@ -288,20 +283,15 @@ void kernel_shears_iso(int Ncc,double *in1,double *in2,double Dcell) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			if (x == 0 && y == 0) {
-				r = epsilon;
-			}
-			else {
-				r = sqrt(x*x+y*y+epsilon*epsilon);
+			r = sqrt(x*x+y*y+epsilon*epsilon);
 
-				in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
-				in2[i*Ncc+j] = (-2.0*x*y)/(M_PI*r*r*r*r);
+			in1[i*Ncc+j] =  (y*y-x*x)/(M_PI*r*r*r*r);
+			in2[i*Ncc+j] = (-2.0*x*y)/(M_PI*r*r*r*r);
 
-		    	if(r > halfbox) {
-					in1[i*Ncc+j] = 0.0;
-					in2[i*Ncc+j] = 0.0;
-		    	}
-			}
+		    if(r > halfbox) {
+				in1[i*Ncc+j] = 0.0;
+				in2[i*Ncc+j] = 0.0;
+		    }
 		}
 
 		else {
@@ -332,20 +322,15 @@ void kernel_alphas_iso(int Ncc,double *in1,double *in2,double Dcell) {
 		if(i <=(Ncc/2)  && j <=(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			if (x == 0 && y == 0) {
-				r = epsilon;
-			}
-			else {
-				r = sqrt(x*x+y*y+epsilon*epsilon);
+			r = sqrt(x*x+y*y+epsilon*epsilon);
 
-				in1[i*Ncc+j] = x/(M_PI*r*r);
-				in2[i*Ncc+j] = y/(M_PI*r*r);
+			in1[i*Ncc+j] = x/(M_PI*r*r);
+			in2[i*Ncc+j] = y/(M_PI*r*r);
 
-		    	//if(r > halfbox) {
-				//	in1[i*Ncc+j] = 0.0;
-				//	in2[i*Ncc+j] = 0.0;
-		    	//}
-			}
+		    if(r > halfbox) {
+				in1[i*Ncc+j] = 0.0;
+				in2[i*Ncc+j] = 0.0;
+		    }
 		}
 		else {
 			if(i <= Ncc/2 && j > (Ncc/2)) {
@@ -376,18 +361,13 @@ void kernel_smooth_iso(double sigma,int Ncc,double *in,double Dcell) {
 		if(i <(Ncc/2)  && j <(Ncc/2)) {
 			x = (double)(i)*Dcell;
 			y = (double)(j)*Dcell;
-			if (x == 0 && y == 0) {
-				r = epsilon;
-			}
-			else {
-				r = sqrt(x*x+y*y+epsilon*epsilon);
+			r = sqrt(x*x+y*y+epsilon*epsilon);
 
-				in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
+			in[i*Ncc+j] = 1.0/(2.0*M_PI*sigma*sigma)*exp(-(r*r)/(2.0*sigma*sigma));
 
-		    	//if(r > halfbox) {
-				//	in[i*Ncc+j] = 0.0;
-		    	//}
-			}
+		    //if(r > halfbox) {
+			//	in[i*Ncc+j] = 0.0;
+		    //}
 		}
 		else {
 			if(i < Ncc/2 && j >= (Ncc/2)) {
@@ -715,88 +695,3 @@ void sdens_to_sl(double p_mass_in, double* sdens_in, int Ncc, double Dcell, doub
 	free(phi);
 }
 //----------------------------------------------------------------------------------
-void find_critical_curve(double *mu,int nx,int ny,double* res) {
-
-	int i,j,index,sign_t=0;
-	int im1,ip1,jm1,jp1;
-	for (i = 0; i < nx; ++i) for (j = 0; j < ny; ++j) {
-		index = i*ny+j;
-		//im1 = i-1;
-		//ip1 = i+1;
-		//jm1 = j-1;
-		//jp1 = j+1;
-
-		//if (im1<0||jm1<0||ip1>(nx-1)||jp1>(ny-1)) continue;
-
-        if (i==0) {im1 = nx-1;}
-        else {im1 = i-1;}
-        if (j==0) {jm1 = ny-1;}
-        else {jm1 = j-1;}
-        if (i==nx-1) {ip1 = 0;}
-        else {ip1 = i+1;}
-        if (j==ny-1) {jp1 = 0;}
-        else {jp1 = j+1;}
-
-		sign_t = sign(mu[index])*(sign(mu[im1*ny+j])
-								 +sign(mu[i*ny+jm1])
-								 +sign(mu[ip1*ny+j])
-								 +sign(mu[i*ny+jp1]));
-		if (sign_t < 4) {
-			res[index] = 1.0;
-		}
-		else {
-			res[index] = 0.0;
-		}
-	}
-}
-
-void forward_cic(double *cic_in,double *x_in,double *y_in,double bsx,double bsy,int nx,int ny,int np,double *cic_out) {
-    double dx = bsx/nx;
-    double dy = bsy/ny;
-    double xc = bsx/2.0;
-    double yc = bsy/2.0;
-    double wx,wy;
-    double xp,yp,zp;
-
-    int i;
-    int ip,jp;
-
-    for (i=0;i<np;i++) {
-        xp = (x_in[i]+xc)/dx-0.5;
-        yp = (y_in[i]+yc)/dy-0.5;
-		zp = cic_in[i];
-
-        ip = (int)xp;
-        jp = (int)yp;
-
-		if (ip<0||ip>(nx-2)||jp<0||jp>(ny-2)) continue;
-        wx = 1.0-(xp-(double)ip);
-        wy = 1.0-(yp-(double)jp);
-
-        cic_out[ip*ny+jp] += wx*wy*zp;
-        cic_out[ip*ny+(jp+1)] += wx*(1.0-wy)*zp;
-        cic_out[(ip+1)*ny+jp] += (1.0-wx)*wy*zp;
-        cic_out[(ip+1)*ny+(jp+1)] += (1.0-wx)*(1.0-wy)*zp;
-    }
-}
-
-
-void find_caustics(double *yi1,double *yi2,int npixels,int nx1,int nx2,double bsz,double *caustic){
-
-	int i,j,index;
-	double *img_in = (double *)malloc(npixels*sizeof(double));
-
-	for (i = 0; i < npixels; ++i) {
-		img_in[i] = 1.0;
-	}
-
-    forward_cic(img_in,yi1,yi2,bsz,bsz,nx1,nx2,npixels,caustic);
-
-	for (i = 0; i < nx1; ++i) for (j = 0; j < nx2; ++j){
-		index = i*nx2+j;
-		if (caustic[index]>0) {
-			caustic[index] = 1;
-		}
-	}
-	free(img_in);
-}
