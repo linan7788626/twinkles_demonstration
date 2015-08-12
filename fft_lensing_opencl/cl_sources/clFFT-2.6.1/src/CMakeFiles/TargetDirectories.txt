@@ -1,8 +1,0 @@
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/examples/CMakeFiles/example_examples_fft2d.dir
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/examples/CMakeFiles/example_examples_fft1d.dir
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/statTimer/CMakeFiles/StatTimer.dir
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/examples/CMakeFiles/example_examples_fft3d.dir
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/tests/CMakeFiles/Test.dir
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/client/CMakeFiles/clFFT-client.dir
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/library/CMakeFiles/clFFT.dir
-/Users/uranus/GitHub/twinkles_demonstration/fft_lensing_opencl/cl_sources/clFFT-2.6.1/src/CMakeFiles/gtest-external.dir
