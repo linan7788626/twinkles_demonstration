@@ -471,7 +471,7 @@ void all_about_lensing(double *xi1,double *xi2,int nx1,int nx2,double * spar, in
 	find_caustics(xi1,xi2,nx1,nx2,dsx,critical,lpar,nlpars,lpars,nlsubs,caustic);
 }
 
-void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *g_lensimage){
+void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *l_image){
 
 	double al1,al2;
 	double yi1,yi2;
@@ -487,7 +487,7 @@ void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double 
 	srcs_images(xi1,xi2,spar,nspars,spars,nssubs,&s_image_tmp);
 	srcs_images(yi1,yi2,spar,nspars,spars,nssubs,&l_image_tmp);
 	*s_image = s_image_tmp;
-	*g_lensimage = l_image_tmp;
+	*l_image = l_image_tmp;
 }
 //------------------------------------------------------------------------
 void cal_cc(double *xi1,double *xi2,double *al1,double *al2,int nx1,int nx2,double *lpar,int nlpars,double *lpars,int nlsubs,double *critical,double *caustic){
@@ -518,3 +518,23 @@ void cal_cc(double *xi1,double *xi2,double *al1,double *al2,int nx1,int nx2,doub
 	free(imu);
 	find_caustics(xi1,xi2,nx1,nx2,dsx,critical,lpar,nlpars,lpars,nlsubs,caustic);
 }
+
+//kernel void VectorAdd(
+//    global read_only double* xi1,
+//    global read_only double* xi2,
+//	global read_only double * spar,
+//	global read_only int nspars,
+//	global read_only double * spars,
+//	global read_only int nssubs,
+//	global read_only double * lpar,
+//	global read_only int nlpars,
+//	global read_only double * lpars,
+//	global read_only int nlsubs,
+//	global write_only double *s_image,
+//	global write_only double *l_image)
+//{
+//    int index = get_global_id(0);
+//    //c[index] = a[index] + b[index];
+//    //c[index] = AddVector(a[index], b[index]);
+//	single_ray_lensing(xi1[index],xi2[index],spar,nspars,spars,nssubs,lpar,nlpars,lpars,nlsubs,&s_image[index],&l_image[index]);
+//}

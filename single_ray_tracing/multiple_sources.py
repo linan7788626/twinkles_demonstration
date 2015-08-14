@@ -17,7 +17,7 @@ def main():
     xi1,xi2 = np.meshgrid(xi1,xi2)
 
     pygame.init()
-    FPS = 30
+    FPS = 20
     fpsClock = pygame.time.Clock()
 
     screen = pygame.display.set_mode((nnw, nnw), pygame.RESIZABLE, 32)
