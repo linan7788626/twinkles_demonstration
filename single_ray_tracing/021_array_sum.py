@@ -17,7 +17,13 @@ cl_b = cl.Buffer(context, cl.mem_flags.COPY_HOST_PTR, hostbuf=np_b)
 cl_c = cl.Buffer(context, cl.mem_flags.WRITE_ONLY, np_c.nbytes)
 # Create three buffers (plans for areas of memory on the device)
 
-kernel = """__kernel void sum(__global float* a, __global float* b, __global float* c)
+kernel = """
+inline float add(float a,float b)
+{
+	return a+b;
+}
+
+__kernel void sum(__global float* a, __global float* b, __global float* c)
 {
     int i = get_global_id(0);
     c[i] = a[i] + b[i];

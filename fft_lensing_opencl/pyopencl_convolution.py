@@ -126,7 +126,7 @@ def example():
         truth = signal.fftconvolve(batched_data[i], kernel, 'valid')
         print(numpy.any(numpy.abs(result[i] - truth) > 0.0001))
 def example2():
-    nnn = 1024
+    nnn = 768
     convolver = CachedQueueConvolver()
     batched_data = numpy.random.rand(1,1,nnn,nnn)
     kernel = numpy.random.rand(1,nnn,nnn)

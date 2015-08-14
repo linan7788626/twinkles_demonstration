@@ -13,7 +13,8 @@
 const char *KernelSource = "\n" \
 "inline float add(float a,float b)										\n" \
 "{																		\n" \
-"   return a+b;                                                         \n" \
+"   //return sin(a)+cos(b);                                                         \n" \
+"   return a/b;                                                         \n" \
 "}                                                                      \n" \
 "__kernel void square(                                                  \n" \
 "   __global float* input,                                              \n" \
@@ -188,7 +189,8 @@ int main(int argc, char** argv)
     for(i = 0; i < count; i++)
     {
         //if(results[i] == data[i] * data[i])
-        if(results[i] == data[i]+data[i])
+        //if(results[i] == (sin(data[i])+cos(data[i])))
+        if(results[i] == (data[i]/data[i]))
             correct++;
     }
 
