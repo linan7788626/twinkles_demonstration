@@ -8,8 +8,8 @@ from sys import exit
 from libv5_cv import *
 
 def main():
-    nnn = 1024
-    nnw = 1024
+    nnn = 768
+    nnw = 768
     boxsize = 4.0
     dsx = boxsize/nnn
     xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
