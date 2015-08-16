@@ -482,6 +482,7 @@ void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double 
 	yi1 = xi1-al1;
 	yi2 = xi2-al2;
 
+	//need to be improved
 	double s_image_tmp;
 	double l_image_tmp;
 	srcs_images(xi1,xi2,spar,nspars,spars,nssubs,&s_image_tmp);
