@@ -19,7 +19,7 @@ ext = Extension("libv5_cv", ["./v5_cv.pyx","./all_cv_test.c"],
                   "./"],
     library_dirs=["./"],
     libraries=["m"],
-    extra_compile_args=['-framework OpenCL'],
+    #extra_compile_args=['-framework OpenCL'],
 )
 
 setup(ext_modules=[ext],

@@ -439,8 +439,8 @@ void all_about_lensing(double *xi1,double *xi2,int nx1,int nx2,double * spar, in
 			yi1 = xi1[i]-al1[i];
 			yi2 = xi2[i]-al2[i];
 			//gauss_2d(xi1[i],xi2[i],spar,&s_image[i]);
-			srcs_images(xi1[i],xi2[i],spar,nspars,spars,nssubs,&s_image[i]);
-			srcs_images(yi1,yi2,spar,nspars,spars,nssubs,&g_lensimage[i]);
+			//srcs_images(xi1[i],xi2[i],spar,nspars,spars,nssubs,&s_image[i]);
+			//srcs_images(yi1,yi2,spar,nspars,spars,nssubs,&g_lensimage[i]);
 		}
     }
 //------------------------------------------------------------------------
