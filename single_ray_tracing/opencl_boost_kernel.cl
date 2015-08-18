@@ -2,19 +2,13 @@
 #include <stdlib.h>
 #include <math.h>
 
-int sign(double x) {
-	if (x > 0) return 1;
-	if (x < 0) return -1;
-	return 0;
-}
-
-double deg2rad(double pha) {
+inline double deg2rad(double pha) {
 	double res = 0;
 	res = pha*M_PI/180.0;
 	return res;
 }
 
-void lq_nie(double x1,double x2,double *lpar,double *alpha1,double *alpha2) {
+inline void lq_nie(double x1,double x2,double *lpar,double *alpha1,double *alpha2) {
 
     double xc1 = lpar[0];
     double xc2 = lpar[1];
@@ -40,7 +34,7 @@ void lq_nie(double x1,double x2,double *lpar,double *alpha1,double *alpha2) {
 	*alpha2 = (a2*cosa+a1*sina)*re;
 }
 
-void tot_alphas(double x1, double x2,double *lpar, int npars, double *lpars, int nsubs, double *alpha1, double *alpha2) {
+inline void tot_alphas(double x1, double x2,double *lpar, int npars, double *lpars, int nsubs, double *alpha1, double *alpha2) {
 
 	int i,j;
     double al1, al2;
@@ -62,7 +56,7 @@ void tot_alphas(double x1, double x2,double *lpar, int npars, double *lpars, int
     free(lpars_i);
 }
 
-void srcs_images(double xi1,double xi2,double *gpar,int npars,double *gpars,int nsubs,double *g_srcs) {
+inline void srcs_images(double xi1,double xi2,double *gpar,int npars,double *gpars,int nsubs,double *g_srcs) {
 	int i,j;
 	double g_srcs_tmp = 0.0;
     gauss_2d(xi1,xi2,gpar,&g_srcs_tmp);
@@ -80,7 +74,7 @@ void srcs_images(double xi1,double xi2,double *gpar,int npars,double *gpars,int 
 }
 
 
-void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *l_image){
+inline void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *l_image){
 
 	double al1,al2;
 	double yi1,yi2;
