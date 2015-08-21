@@ -525,7 +525,7 @@ void cal_cc(float *xi1,float *xi2,float *al1,float *al2,int nx1,int nx2,float *l
 	find_caustics(xi1,xi2,nx1,nx2,dsx,critical,lpar,nlpars,lpars,nlsubs,caustic);
 }
 
-void call_kernel(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float *alpha2,char * cl_name) {
+void call_kernel_lq(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float *alpha2,char * cl_name) {
 
     FILE* programHandle;
     size_t programSize, KernelSourceSize;
@@ -616,45 +616,45 @@ void call_kernel(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float
     free(KernelSource);
 }
 
-int main(int argc, const char *argv[]) {
+/*int main(int argc, const char *argv[]) {*/
 
-    float xlc0 = 0.0;
-    float ylc0 = 0.0;
-    float ql0 = 0.7;
-    float rc0 = 0.1;
-    float re0 = 1.0;
-    float phi0 = 0.0;
-    float lpar[] = {ylc0,xlc0,ql0,rc0,re0,phi0};
+    /*float xlc0 = 0.0;*/
+    /*float ylc0 = 0.0;*/
+    /*float ql0 = 0.7;*/
+    /*float rc0 = 0.1;*/
+    /*float re0 = 1.0;*/
+    /*float phi0 = 0.0;*/
+    /*float lpar[] = {ylc0,xlc0,ql0,rc0,re0,phi0};*/
 
-	int count = 1024*1024;
-    float *xi1 = (float *)malloc(sizeof(float)*count);
-    float *xi2 = (float *)malloc(sizeof(float)*count);
-    float *alpha1 = (float *)malloc(sizeof(float)*count);
-    float *alpha2 = (float *)malloc(sizeof(float)*count);
-    int correct;
+	/*int count = 1024*1024;*/
+    /*float *xi1 = (float *)malloc(sizeof(float)*count);*/
+    /*float *xi2 = (float *)malloc(sizeof(float)*count);*/
+    /*float *alpha1 = (float *)malloc(sizeof(float)*count);*/
+    /*float *alpha2 = (float *)malloc(sizeof(float)*count);*/
+    /*int correct;*/
 
-    int i = 0;
-    for(i = 0; i < count; i++) {
-		xi1[i] = rand() / (float)RAND_MAX;
-		xi2[i] = rand() / (float)RAND_MAX;
-	}
+    /*int i = 0;*/
+    /*for(i = 0; i < count; i++) {*/
+		/*xi1[i] = rand() / (float)RAND_MAX;*/
+		/*xi2[i] = rand() / (float)RAND_MAX;*/
+	/*}*/
 
 
-	call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./play_with.cl");
+	/*call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./cl_kernels/play_with.cl");*/
 
-    //float *alpha1_c = (float *)malloc(sizeof(float)*count);
-    //float *alpha2_c = (float *)malloc(sizeof(float)*count);
-    //correct = 0;
-    //for(i = 0; i < count; i++) {
-	//	lq_nie(xi1[i],xi2[i],lpar,&alpha1_c[i],&alpha2_c[i]);
-	//	//printf("%f-----%f||%f-----%f\n",alpha1[i],alpha1_c[i],alpha2[i],alpha2_c[i]);
-    //}
+    /*float *alpha1_c = (float *)malloc(sizeof(float)*count);*/
+    /*float *alpha2_c = (float *)malloc(sizeof(float)*count);*/
+    /*correct = 0;*/
+    /*for(i = 0; i < count; i++) {*/
+		/*lq_nie(xi1[i],xi2[i],lpar,&alpha1_c[i],&alpha2_c[i]);*/
+		/*printf("%f-----%f||%f-----%f\n",alpha1[i],alpha1_c[i],alpha2[i],alpha2_c[i]);*/
+    /*}*/
 
-	free(xi1);
-	free(xi2);
-	free(alpha1);
-	free(alpha2);
-	//free(alpha1_c);
-	//free(alpha2_c);
-    return 0;
-}
+	/*free(xi1);*/
+	/*free(xi2);*/
+	/*free(alpha1);*/
+	/*free(alpha2);*/
+	/*free(alpha1_c);*/
+	/*free(alpha2_c);*/
+    /*return 0;*/
+/*}*/

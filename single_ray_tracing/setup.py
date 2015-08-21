@@ -1,6 +1,8 @@
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
+import os
+os.environ['CFLAGS'] = "-framework OpenCL"
 
 import numpy as np
 #import sys
@@ -19,7 +21,6 @@ ext = Extension("libv5_cv", ["./v5_cv.pyx","./all_cv_test.c"],
                   "./"],
     library_dirs=["./"],
     libraries=["m"],
-    #extra_compile_args=['-framework OpenCL'],
 )
 
 setup(ext_modules=[ext],

@@ -1,32 +1,27 @@
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <OpenCL/opencl.h>
+//#include <omp.h>
 
-int sign(float x) {
+int sign(double x) {
 	if (x > 0) return 1;
 	if (x < 0) return -1;
 	return 0;
 }
 
-float deg2rad(float pha) {
-	float res = 0;
+double deg2rad(double pha) {
+	double res = 0;
 	res = pha*M_PI/180.0;
 	return res;
 }
 
-void forward_cic(float *cic_in,float *x_in,float *y_in,float bsx,float bsy,int nx,int ny,int np,float *cic_out) {
-    float dx = bsx/nx;
-    float dy = bsy/ny;
-    float xc = bsx/2.0;
-    float yc = bsy/2.0;
-    float wx,wy;
-    float xp,yp,zp;
+void forward_cic(double *cic_in,double *x_in,double *y_in,double bsx,double bsy,int nx,int ny,int np,double *cic_out) {
+    double dx = bsx/nx;
+    double dy = bsy/ny;
+    double xc = bsx/2.0;
+    double yc = bsy/2.0;
+    double wx,wy;
+    double xp,yp,zp;
 
     int i;
     int ip,jp;
@@ -40,8 +35,8 @@ void forward_cic(float *cic_in,float *x_in,float *y_in,float bsx,float bsy,int n
         jp = (int)yp;
 
 		if (ip<0||ip>(nx-2)||jp<0||jp>(ny-2)) continue;
-        wx = 1.0-(xp-(float)ip);
-        wy = 1.0-(yp-(float)jp);
+        wx = 1.0-(xp-(double)ip);
+        wy = 1.0-(yp-(double)jp);
 
         cic_out[ip*ny+jp] += wx*wy*zp;
         cic_out[ip*ny+(jp+1)] += wx*(1.0-wy)*zp;
@@ -51,7 +46,7 @@ void forward_cic(float *cic_in,float *x_in,float *y_in,float bsx,float bsy,int n
 }
 
 //--------------------------------------------------------------------
-void lanczos_diff_2_tag(float *m1, float *m2, float *m11, float *m12, float *m21, float *m22, float Dcell, int Ncc, int dif_tag) {
+void lanczos_diff_2_tag(double *m1, double *m2, double *m11, double *m12, double *m21, double *m22, double Dcell, int Ncc, int dif_tag) {
     int i_m3,i_p3,j_m3,j_p3,i_m2,i_p2,j_m2,j_p2,i_m1,j_m1,i_p1,j_p1,i,j;
     int index;
 
@@ -149,17 +144,17 @@ void lanczos_diff_2_tag(float *m1, float *m2, float *m11, float *m12, float *m21
     }
 }
 
-void xy_rotate(float x1_in,float x2_in,float xc1,float xc2,float pha,float *x1_out,float *x2_out) {
-    float phirad = deg2rad(pha);
+void xy_rotate(double x1_in,double x2_in,double xc1,double xc2,double pha,double *x1_out,double *x2_out) {
+    double phirad = deg2rad(pha);
 	*x1_out = (x1_in - xc1)*cos(phirad)+(x2_in-xc2)*sin(phirad);
 	*x2_out = (x2_in - xc2)*cos(phirad)-(x1_in-xc1)*sin(phirad);
 }
 
-void gauss_2d(float x1,float x2,float *par,float *res) {
+void gauss_2d(double x1,double x2,double *par,double *res) {
     //gpars = np.asarray([ylcs,xlcs,qls,aps,l_sigs,phis]);
-	float x1new,x2new;
+	double x1new,x2new;
     xy_rotate(x1,x2,par[0], par[1],par[5],&x1new,&x2new);
-	float re_eff = (x1new*x1new)*par[2]+(x2new*x2new)/par[2];
+	double re_eff = (x1new*x1new)*par[2]+(x2new*x2new)/par[2];
 	if (re_eff>4.0) {
 		*res = 0.0;
 	}
@@ -169,10 +164,10 @@ void gauss_2d(float x1,float x2,float *par,float *res) {
 	}
 }
 
-void tophat_2d(float x1,float x2,float *par,float *res) {
-	float x1new,x2new;
+void tophat_2d(double x1,double x2,double *par,double *res) {
+	double x1new,x2new;
     xy_rotate(x1,x2,par[0],par[1], par[5],&x1new,&x2new);
-	float r_ell;
+	double r_ell;
 	r_ell = sqrt((x1new*x1new)*par[2]+(x2new*x2new)/par[2]);
 	if (r_ell>=par[4]) {
 		*res = -1.0;
@@ -182,20 +177,20 @@ void tophat_2d(float x1,float x2,float *par,float *res) {
 	}
 }
 
-void lq_nie(float x1,float x2,float *lpar,float *alpha1,float *alpha2) {
+void lq_nie(double x1,double x2,double *lpar,double *alpha1,double *alpha2) {
 
-    float xc1 = lpar[0];
-    float xc2 = lpar[1];
-    float q   = lpar[2];
-    float rc  = lpar[3];
-    float re  = lpar[4];
-    float pha = lpar[5];
+    double xc1 = lpar[0];
+    double xc2 = lpar[1];
+    double q   = lpar[2];
+    double rc  = lpar[3];
+    double re  = lpar[4];
+    double pha = lpar[5];
 
-    float phirad = deg2rad(pha);
-    float cosa = cos(phirad);
-    float sina = sin(phirad);
-	float phi,a1,a2;
-	float xt1,xt2;
+    double phirad = deg2rad(pha);
+    double cosa = cos(phirad);
+    double sina = sin(phirad);
+	double phi,a1,a2;
+	double xt1,xt2;
 
 	xt1 = (x1-xc1)*cosa+(x2-xc2)*sina;
 	xt2 = (x2-xc2)*cosa-(x1-xc1)*sina;
@@ -208,7 +203,7 @@ void lq_nie(float x1,float x2,float *lpar,float *alpha1,float *alpha2) {
 	*alpha2 = (a2*cosa+a1*sina)*re;
 }
 
-void find_critical_curve(float *mu,int nx,int ny,float* res) {
+void find_critical_curve(double *mu,int nx,int ny,double* res) {
 
 	int i,j,index,sign_t=0;
 	int im1,ip1,jm1,jp1;
@@ -242,14 +237,14 @@ void find_critical_curve(float *mu,int nx,int ny,float* res) {
 		}
 	}
 }
-void tot_lq(float x1, float x2,float *lpar, int npars, float *lpars, int nsubs, float *y1, float *y2) {
+void tot_lq(double x1, double x2,double *lpar, int npars, double *lpars, int nsubs, double *y1, double *y2) {
 
 	int i,j;
-    float al1, al2;
+    double al1, al2;
     lq_nie(x1,x2,lpar,&al1,&al2);
 
-    float als1,als2;
-    float * lpars_i = (float *)malloc(sizeof(float)*npars);
+    double als1,als2;
+    double * lpars_i = (double *)malloc(sizeof(double)*npars);
 	for (i = 0; i < nsubs; ++i) {
 		for (j = 0; j < npars;++j) {
 			lpars_i[j] = lpars[i*npars+j];
@@ -263,14 +258,14 @@ void tot_lq(float x1, float x2,float *lpar, int npars, float *lpars, int nsubs, 
 	*y2 = x2-al2;
     free(lpars_i);
 }
-void tot_alphas(float x1, float x2,float *lpar, int npars, float *lpars, int nsubs, float *alpha1, float *alpha2) {
+void tot_alphas(double x1, double x2,double *lpar, int npars, double *lpars, int nsubs, double *alpha1, double *alpha2) {
 
 	int i,j;
-    float al1, al2;
+    double al1, al2;
     lq_nie(x1,x2,lpar,&al1,&al2);
 
-    float als1,als2;
-    float * lpars_i = (float *)malloc(sizeof(float)*npars);
+    double als1,als2;
+    double * lpars_i = (double *)malloc(sizeof(double)*npars);
 	for (i = 0; i < nsubs; ++i) {
 		for (j = 0; j < npars;++j) {
 			lpars_i[j] = lpars[i*npars+j];
@@ -285,14 +280,14 @@ void tot_alphas(float x1, float x2,float *lpar, int npars, float *lpars, int nsu
     free(lpars_i);
 }
 
-void refine_critical(float * xi1,float * xi2,int nx1,int nx2,float * lpar,int npars,float * lpars, int nsubs,float * critical,int clen, int nfiner, float * yi1,float *yi2) {
+void refine_critical(double * xi1,double * xi2,int nx1,int nx2,double * lpar,int npars,double * lpars, int nsubs,double * critical,int clen, int nfiner, double * yi1,double *yi2) {
 
 	int i,j,k=0,m,n,index;
-    float dsx = xi1[nx2+1]-xi1[0];
-    float dsf = dsx/nfiner;
+    double dsx = xi1[nx2+1]-xi1[0];
+    double dsf = dsx/nfiner;
 
-    float * xt1 = (float *)malloc(clen*nfiner*nfiner*sizeof(float));
-    float * xt2 = (float *)malloc(clen*nfiner*nfiner*sizeof(float));
+    double * xt1 = (double *)malloc(clen*nfiner*nfiner*sizeof(double));
+    double * xt2 = (double *)malloc(clen*nfiner*nfiner*sizeof(double));
 
 	for (i = 0; i < nx1; ++i) for (j = 0; j < nx2; ++j){
 		index = i*nx2+j;
@@ -310,12 +305,12 @@ void refine_critical(float * xi1,float * xi2,int nx1,int nx2,float * lpar,int np
 	free(xt1);
 	free(xt2);
 }
-void srcs_images(float xi1,float xi2,float *gpar,int npars,float *gpars,int nsubs,float *g_srcs) {
+void srcs_images(double xi1,double xi2,double *gpar,int npars,double *gpars,int nsubs,double *g_srcs) {
 	int i,j;
-	float g_srcs_tmp = 0.0;
+	double g_srcs_tmp = 0.0;
     gauss_2d(xi1,xi2,gpar,&g_srcs_tmp);
-    float * gpars_i = (float *)malloc(npars*sizeof(float));
-    float g_lens_subs = 0;
+    double * gpars_i = (double *)malloc(npars*sizeof(double));
+    double g_lens_subs = 0;
 	for (i = 0; i < nsubs; ++i) {
 		for (j = 0; j < npars; ++j) {
 			gpars_i[j] = gpars[i*npars+j];
@@ -327,14 +322,14 @@ void srcs_images(float xi1,float xi2,float *gpar,int npars,float *gpars,int nsub
     free(gpars_i);
 }
 
-void lens_images(float *xi1,float *xi2,int nx1,int nx2,float *gpar,int npars,float *gpars,int nsubs,float *g_lens) {
+void lens_images(double *xi1,double *xi2,int nx1,int nx2,double *gpar,int npars,double *gpars,int nsubs,double *g_lens) {
 	int i,j,k,l,index;
 	for (k = 0; k < nx1; ++k) for (l = 0; l < nx2; ++l){
 		index = k*nx2+l;
 		gauss_2d(xi1[index],xi2[index],gpar,&g_lens[index]);
 	}
-    float * gpars_i = (float *)malloc(npars*sizeof(float));
-    float * g_lens_subs = (float *)malloc(nx1*nx2*sizeof(float));
+    double * gpars_i = (double *)malloc(npars*sizeof(double));
+    double * g_lens_subs = (double *)malloc(nx1*nx2*sizeof(double));
 	for (i = 0; i < nsubs; ++i) {
 		for (j = 0; j < npars; ++j) {
 			gpars_i[j] = gpars[i*npars+j];
@@ -348,18 +343,18 @@ void lens_images(float *xi1,float *xi2,int nx1,int nx2,float *gpar,int npars,flo
     free(gpars_i);
     free(g_lens_subs);
 }
-void mmbr_images(float *xi1,float *xi2,int nx1,int nx2,float *gpar,int npars,float *gpars,int nsubs,float *g_edge) {
+void mmbr_images(double *xi1,double *xi2,int nx1,int nx2,double *gpar,int npars,double *gpars,int nsubs,double *g_edge) {
 
 	int i,j,k,l,index;
-    float * g_lens = (float *)malloc(nx1*nx2*sizeof(float));
+    double * g_lens = (double *)malloc(nx1*nx2*sizeof(double));
 	for (i = 0; i < nx1*nx2; i++) {
 		tophat_2d(xi1[i],xi2[i],gpar,&g_lens[i]);
 	}
     find_critical_curve(g_lens,nx1,nx2,g_edge);
 
-    float * gpars_i = (float *)malloc(npars*sizeof(float));
-    float * g_lens_subs = (float *)malloc(nx1*nx2*sizeof(float));
-    float * g_edge_subs = (float *)malloc(nx1*nx2*sizeof(float));
+    double * gpars_i = (double *)malloc(npars*sizeof(double));
+    double * g_lens_subs = (double *)malloc(nx1*nx2*sizeof(double));
+    double * g_edge_subs = (double *)malloc(nx1*nx2*sizeof(double));
 
 	for (i = 0; i < nsubs; ++i) {
 		for (j = 0; j < npars; ++j) {
@@ -385,7 +380,7 @@ void mmbr_images(float *xi1,float *xi2,int nx1,int nx2,float *gpar,int npars,flo
 	}
 }
 
-void find_caustics(float *xi1,float *xi2,int nx1,int nx2,float dsx,float *critical,float *lpar,int nlpars,float *lpars,int nlsubs,float *caustic) {
+void find_caustics(double *xi1,double *xi2,int nx1,int nx2,double dsx,double *critical,double *lpar,int nlpars,double *lpars,int nlsubs,double *caustic) {
 
 	int i,j,index;
     int clen = 0;
@@ -399,14 +394,14 @@ void find_caustics(float *xi1,float *xi2,int nx1,int nx2,float dsx,float *critic
 	}
 	int ylen = clen*nfiner*nfiner;
 
-    float * yif1 = (float *)malloc(ylen*sizeof(float));
-    float * yif2 = (float *)malloc(ylen*sizeof(float));
+    double * yif1 = (double *)malloc(ylen*sizeof(double));
+    double * yif2 = (double *)malloc(ylen*sizeof(double));
 
 	refine_critical(xi1,xi2,nx1,nx2,lpar,nlpars,lpars,nlsubs,critical,clen,nfiner,yif1,yif2);
 
-    float bsz;
+    double bsz;
     bsz = dsx*nx1;
-    float * img_in = (float *)malloc(ylen*sizeof(float));
+    double * img_in = (double *)malloc(ylen*sizeof(double));
 
 	for (i = 0; i < ylen; ++i) {
 		img_in[i] = 1.0;
@@ -426,11 +421,11 @@ void find_caustics(float *xi1,float *xi2,int nx1,int nx2,float dsx,float *critic
 }
 
 
-void all_about_lensing(float *xi1,float *xi2,int nx1,int nx2,float * spar, int nspars, float * spars, int nssubs, float * lpar,int nlpars,float * lpars,int nlsubs,float *s_image,float *g_lensimage,float *critical,float *caustic){
+void all_about_lensing(double *xi1,double *xi2,int nx1,int nx2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *g_lensimage,double *critical,double *caustic){
 
-    float * al1 = (float *)malloc(sizeof(float)*nx1*nx2);
-    float * al2 = (float *)malloc(sizeof(float)*nx1*nx2);
-	float yi1,yi2;
+    double * al1 = (double *)malloc(sizeof(double)*nx1*nx2);
+    double * al2 = (double *)malloc(sizeof(double)*nx1*nx2);
+	double yi1,yi2;
 	int i,k,l;
 
 #pragma omp parallel num_threads(4)    \
@@ -449,17 +444,17 @@ void all_about_lensing(float *xi1,float *xi2,int nx1,int nx2,float * spar, int n
 		}
     }
 //------------------------------------------------------------------------
-    float dsx = xi1[nx2+1]-xi1[0];
-    float * a11 = (float *)malloc(nx1*nx2*sizeof(float));
-    float * a12 = (float *)malloc(nx1*nx2*sizeof(float));
-    float * a21 = (float *)malloc(nx1*nx2*sizeof(float));
-    float * a22 = (float *)malloc(nx1*nx2*sizeof(float));
+    double dsx = xi1[nx2+1]-xi1[0];
+    double * a11 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a12 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a21 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a22 = (double *)malloc(nx1*nx2*sizeof(double));
 
 	lanczos_diff_2_tag(al1,al2,a21,a22,a11,a12,dsx,nx1,-1);
     free(al1);
     free(al2);
 
-    float * imu = (float *)malloc(nx1*nx2*sizeof(float));
+    double * imu = (double *)malloc(nx1*nx2*sizeof(double));
 	int index;
 	for (k = 0; k < nx1; k++) for (l = 0; l < nx2; l++) {
 		index = k*nx2+l;
@@ -476,10 +471,10 @@ void all_about_lensing(float *xi1,float *xi2,int nx1,int nx2,float * spar, int n
 	find_caustics(xi1,xi2,nx1,nx2,dsx,critical,lpar,nlpars,lpars,nlsubs,caustic);
 }
 
-void single_ray_lensing(float xi1,float xi2,float * spar, int nspars, float * spars, int nssubs, float * lpar,int nlpars,float * lpars,int nlsubs,float *s_image,float *l_image){
+void single_ray_lensing(double xi1,double xi2,double * spar, int nspars, double * spars, int nssubs, double * lpar,int nlpars,double * lpars,int nlsubs,double *s_image,double *l_image){
 
-	float al1,al2;
-	float yi1,yi2;
+	double al1,al2;
+	double yi1,yi2;
 	int i,k,l;
 
 	tot_alphas(xi1,xi2,lpar,nlpars,lpars,nlsubs,&al1,&al2);
@@ -488,27 +483,27 @@ void single_ray_lensing(float xi1,float xi2,float * spar, int nspars, float * sp
 	yi2 = xi2-al2;
 
 	//need to be improved
-	float s_image_tmp;
-	float l_image_tmp;
+	double s_image_tmp;
+	double l_image_tmp;
 	srcs_images(xi1,xi2,spar,nspars,spars,nssubs,&s_image_tmp);
 	srcs_images(yi1,yi2,spar,nspars,spars,nssubs,&l_image_tmp);
 	*s_image = s_image_tmp;
 	*l_image = l_image_tmp;
 }
 //------------------------------------------------------------------------
-void cal_cc(float *xi1,float *xi2,float *al1,float *al2,int nx1,int nx2,float *lpar,int nlpars,float *lpars,int nlsubs,float *critical,float *caustic){
+void cal_cc(double *xi1,double *xi2,double *al1,double *al2,int nx1,int nx2,double *lpar,int nlpars,double *lpars,int nlsubs,double *critical,double *caustic){
 	int i,j,k,l;
-    float dsx = xi1[nx2+1]-xi1[0];
-    float * a11 = (float *)malloc(nx1*nx2*sizeof(float));
-    float * a12 = (float *)malloc(nx1*nx2*sizeof(float));
-    float * a21 = (float *)malloc(nx1*nx2*sizeof(float));
-    float * a22 = (float *)malloc(nx1*nx2*sizeof(float));
+    double dsx = xi1[nx2+1]-xi1[0];
+    double * a11 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a12 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a21 = (double *)malloc(nx1*nx2*sizeof(double));
+    double * a22 = (double *)malloc(nx1*nx2*sizeof(double));
 
 	lanczos_diff_2_tag(al1,al2,a21,a22,a11,a12,dsx,nx1,-1);
     free(al1);
     free(al2);
 
-    float * imu = (float *)malloc(nx1*nx2*sizeof(float));
+    double * imu = (double *)malloc(nx1*nx2*sizeof(double));
 	int index;
 	for (k = 0; k < nx1; k++) for (l = 0; l < nx2; l++) {
 		index = k*nx2+l;
@@ -525,136 +520,22 @@ void cal_cc(float *xi1,float *xi2,float *al1,float *al2,int nx1,int nx2,float *l
 	find_caustics(xi1,xi2,nx1,nx2,dsx,critical,lpar,nlpars,lpars,nlsubs,caustic);
 }
 
-void call_kernel(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float *alpha2,char * cl_name) {
-
-    FILE* programHandle;
-    size_t programSize, KernelSourceSize;
-    char *programBuffer, *KernelSource;
-
-    size_t global;                      // global domain size for our calculation
-    size_t local;                       // local domain size for our calculation
-
-    cl_device_id device_id;             // compute device id
-    cl_context context;                 // compute context
-    cl_command_queue commands;          // compute command queue
-    cl_program program;                 // compute program
-    cl_kernel kernel;                   // compute kernel
-
-    cl_mem input1;                       // device memory used for the input array
-    cl_mem input2;                       // device memory used for the input array
-    cl_mem lpar_d;                       // device memory used for the input array
-    cl_mem output1;                      // device memory used for the output array
-    cl_mem output2;                      // device memory used for the output array
-
-	int err;
-    int gpu = 1;
-    err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
-    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
-    commands = clCreateCommandQueue(context, device_id, 0, &err);
-
-	//----------------------------------------------------------------------------
-    // get size of kernel source
-    programHandle = fopen(cl_name, "r");
-    fseek(programHandle, 0, SEEK_END);
-    programSize = ftell(programHandle);
-    rewind(programHandle);
-
-    programBuffer = (char*) malloc(programSize + 1);
-    programBuffer[programSize] = '\0';
-    fread(programBuffer, sizeof(char), programSize, programHandle);
-    fclose(programHandle);
-
-    // create program from buffer
-    program = clCreateProgramWithSource(context,1,(const char**) &programBuffer,&programSize, NULL);
-    free(programBuffer);
-
-    // read kernel source back in from program to check
-    clGetProgramInfo(program, CL_PROGRAM_SOURCE, 0, NULL, &KernelSourceSize);
-    KernelSource = (char*) malloc(KernelSourceSize);
-    clGetProgramInfo(program, CL_PROGRAM_SOURCE, KernelSourceSize, KernelSource, NULL);
-
-    program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
-    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-    kernel = clCreateKernel(program, "square", &err);
-	//----------------------------------------------------------------------------
-
-    input1 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(float) * count, NULL, NULL);
-    input2 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(float) * count, NULL, NULL);
-    lpar_d = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(float) * 6, NULL, NULL);
-    output1 = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * count, NULL, NULL);
-    output2 = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * count, NULL, NULL);
-
-    err = clEnqueueWriteBuffer(commands, input1, CL_TRUE, 0, sizeof(float) * count, xi1, 0, NULL, NULL);
-    err = clEnqueueWriteBuffer(commands, input2, CL_TRUE, 0, sizeof(float) * count, xi2, 0, NULL, NULL);
-    err = clEnqueueWriteBuffer(commands, lpar_d, CL_TRUE, 0, sizeof(float) * 6, lpar, 0, NULL, NULL);
-
-    clSetKernelArg(kernel, 0, sizeof(cl_mem), &input1);
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), &input2);
-    clSetKernelArg(kernel, 2, sizeof(cl_mem), &lpar_d);
-    clSetKernelArg(kernel, 3, sizeof(cl_mem), &output1);
-    clSetKernelArg(kernel, 4, sizeof(cl_mem), &output2);
-    clSetKernelArg(kernel, 5, sizeof(int), &count);
-
-    err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
-    global = count;
-    err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-    clFinish(commands);
-    err = clEnqueueReadBuffer( commands, output1, CL_TRUE, 0, sizeof(float) * count, alpha1, 0, NULL, NULL );
-    err = clEnqueueReadBuffer( commands, output2, CL_TRUE, 0, sizeof(float) * count, alpha2, 0, NULL, NULL );
-
-    clReleaseMemObject(input1);
-    clReleaseMemObject(input2);
-    clReleaseMemObject(lpar_d);
-    clReleaseMemObject(output1);
-    clReleaseMemObject(output2);
-    clReleaseProgram(program);
-    clReleaseKernel(kernel);
-    clReleaseCommandQueue(commands);
-    clReleaseContext(context);
-
-    //printf("nKernel source:\n\n %s \n", KernelSource);
-    free(KernelSource);
-}
-
-int main(int argc, const char *argv[]) {
-
-    float xlc0 = 0.0;
-    float ylc0 = 0.0;
-    float ql0 = 0.7;
-    float rc0 = 0.1;
-    float re0 = 1.0;
-    float phi0 = 0.0;
-    float lpar[] = {ylc0,xlc0,ql0,rc0,re0,phi0};
-
-	int count = 1024*1024;
-    float *xi1 = (float *)malloc(sizeof(float)*count);
-    float *xi2 = (float *)malloc(sizeof(float)*count);
-    float *alpha1 = (float *)malloc(sizeof(float)*count);
-    float *alpha2 = (float *)malloc(sizeof(float)*count);
-    int correct;
-
-    int i = 0;
-    for(i = 0; i < count; i++) {
-		xi1[i] = rand() / (float)RAND_MAX;
-		xi2[i] = rand() / (float)RAND_MAX;
-	}
-
-
-	call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./play_with.cl");
-
-    //float *alpha1_c = (float *)malloc(sizeof(float)*count);
-    //float *alpha2_c = (float *)malloc(sizeof(float)*count);
-    //correct = 0;
-    //for(i = 0; i < count; i++) {
-	//	lq_nie(xi1[i],xi2[i],lpar,&alpha1_c[i],&alpha2_c[i]);
-	//	//printf("%f-----%f||%f-----%f\n",alpha1[i],alpha1_c[i],alpha2[i],alpha2_c[i]);
-    //}
-
-	free(xi1);
-	free(xi2);
-	free(alpha1);
-	free(alpha2);
-	//free(alpha1_c);
-	//free(alpha2_c);
-    return 0;
-}
+//kernel void VectorAdd(
+//    global read_only double* xi1,
+//    global read_only double* xi2,
+//	global read_only double * spar,
+//	global read_only int nspars,
+//	global read_only double * spars,
+//	global read_only int nssubs,
+//	global read_only double * lpar,
+//	global read_only int nlpars,
+//	global read_only double * lpars,
+//	global read_only int nlsubs,
+//	global write_only double *s_image,
+//	global write_only double *l_image)
+//{
+//    int index = get_global_id(0);
+//    //c[index] = a[index] + b[index];
+//    //c[index] = AddVector(a[index], b[index]);
+//	single_ray_lensing(xi1[index],xi2[index],spar,nspars,spars,nssubs,lpar,nlpars,lpars,nlsubs,&s_image[index],&l_image[index]);
+//}
