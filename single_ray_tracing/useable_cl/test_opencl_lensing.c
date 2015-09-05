@@ -8,6 +8,31 @@
 #include <sys/stat.h>
 #include <OpenCL/opencl.h>
 
+//#define CL_CHECK(_expr)                                                         \
+//   do {                                                                         \
+//     cl_int _err = _expr;                                                       \
+//     if (_err == CL_SUCCESS)                                                    \
+//       break;                                                                   \
+//     fprintf(stderr, "OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err);   \
+//     abort();                                                                   \
+//   } while (0)
+//
+//#define CL_CHECK_ERR(_expr)                                                     \
+//   ({                                                                           \
+//     cl_int _err = CL_INVALID_VALUE;                                            \
+//     typeof(_expr) _ret = _expr;                                                \
+//     if (_err != CL_SUCCESS) {                                                  \
+//       fprintf(stderr, "OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err); \
+//       abort();                                                                 \
+//     }                                                                          \
+//     _ret;                                                                      \
+//   })
+
+//--------------------------------------------------------------------
+void pfn_notify(const char *errinfo, const void *private_info, size_t cb, void *user_data) {
+	fprintf(stderr, "OpenCL Error (via pfn_notify): %s\n", errinfo);
+}
+
 int sign(float x) {
 	if (x > 0) return 1;
 	if (x < 0) return -1;
@@ -480,7 +505,7 @@ void single_ray_lensing(float xi1,float xi2,float * spar, int nspars, float * sp
 
 	float al1,al2;
 	float yi1,yi2;
-	int i,k,l;
+	//int i,k,l;
 
 	tot_alphas(xi1,xi2,lpar,nlpars,lpars,nlsubs,&al1,&al2);
 
@@ -497,7 +522,7 @@ void single_ray_lensing(float xi1,float xi2,float * spar, int nspars, float * sp
 }
 //------------------------------------------------------------------------
 void cal_cc(float *xi1,float *xi2,float *al1,float *al2,int nx1,int nx2,float *lpar,int nlpars,float *lpars,int nlsubs,float *critical,float *caustic){
-	int i,j,k,l;
+	int k,l;
     float dsx = xi1[nx2+1]-xi1[0];
     float * a11 = (float *)malloc(nx1*nx2*sizeof(float));
     float * a12 = (float *)malloc(nx1*nx2*sizeof(float));
@@ -525,11 +550,79 @@ void cal_cc(float *xi1,float *xi2,float *al1,float *al2,int nx1,int nx2,float *l
 	find_caustics(xi1,xi2,nx1,nx2,dsx,critical,lpar,nlpars,lpars,nlsubs,caustic);
 }
 
-void call_kernel(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float *alpha2,char * cl_name) {
+void call_kernel_nie(cl_float2 *pos,int count,float *lpar,cl_float2 *alphas,char * cl_name) {
 
-    FILE* programHandle;
-    size_t programSize, KernelSourceSize;
-    char *programBuffer, *KernelSource;
+    size_t global;                      // global domain size for our calculation
+    size_t local;                       // local domain size for our calculation
+
+    cl_device_id device_id;             // compute device id
+    cl_context context;                 // compute context
+    cl_command_queue commands;          // compute command queue
+    cl_program program;                 // compute program
+    cl_kernel kernel;                   // compute kernel
+
+    cl_mem inputs;                       // device memory used for the input array
+    cl_mem lpar_d;                       // device memory used for the input array
+    cl_mem outputs;                      // device memory used for the output array
+
+	int err;
+    int gpu = 1;
+    err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
+    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+	//context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, &pfn_notify, NULL, &_err));
+    commands = clCreateCommandQueue(context, device_id, 0, &err);
+
+//---------------------------------------------------------------------
+///* Load kernel source file */
+	int MAX_SOURCE_SIZE = 1048576;
+	FILE * fp;
+	const char fileName[] = "./test_nie_alphas.cl";
+	size_t KernelSourceSize;
+	char *KernelSource;
+	fp = fopen(fileName, "r");
+	if (!fp) {
+		fprintf(stderr, "Failed to load kernel.\n");
+		exit(1);
+	}
+	KernelSource = (char *)malloc(MAX_SOURCE_SIZE);
+	KernelSourceSize = fread(KernelSource, 1, MAX_SOURCE_SIZE, fp);
+	program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
+	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+	kernel = clCreateKernel(program, "nie_alphas_cl", &err);
+	fclose(fp);
+//----------------------------------------------------------------------------
+
+    inputs = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(cl_float2) * count, NULL, NULL);
+    lpar_d = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(float) * 6, NULL, NULL);
+    outputs = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float2) * count, NULL, NULL);
+
+    err = clEnqueueWriteBuffer(commands, inputs, CL_TRUE, 0, sizeof(cl_float2) * count, pos, 0, NULL, NULL);
+    err = clEnqueueWriteBuffer(commands, lpar_d, CL_TRUE, 0, sizeof(float) * 6, lpar, 0, NULL, NULL);
+
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &inputs);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &lpar_d);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &outputs);
+    clSetKernelArg(kernel, 3, sizeof(int), &count);
+
+    err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+    global = count;
+    err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    clFinish(commands);
+    err = clEnqueueReadBuffer( commands, outputs, CL_TRUE, 0, sizeof(cl_float2) * count, alphas, 0, NULL, NULL );
+
+    clReleaseMemObject(inputs);
+    clReleaseMemObject(lpar_d);
+    clReleaseMemObject(outputs);
+    clReleaseProgram(program);
+    clReleaseKernel(kernel);
+    clReleaseCommandQueue(commands);
+    clReleaseContext(context);
+
+    //printf("nKernel source:\n\n %s \n", KernelSource);
+    free(KernelSource);
+}
+
+void call_kernel(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float *alpha2,char * cl_name) {
 
     size_t global;                      // global domain size for our calculation
     size_t local;                       // local domain size for our calculation
@@ -552,31 +645,25 @@ void call_kernel(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float
     context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
     commands = clCreateCommandQueue(context, device_id, 0, &err);
 
-	//----------------------------------------------------------------------------
-    // get size of kernel source
-    programHandle = fopen(cl_name, "r");
-    fseek(programHandle, 0, SEEK_END);
-    programSize = ftell(programHandle);
-    rewind(programHandle);
-
-    programBuffer = (char*) malloc(programSize + 1);
-    programBuffer[programSize] = '\0';
-    fread(programBuffer, sizeof(char), programSize, programHandle);
-    fclose(programHandle);
-
-    // create program from buffer
-    program = clCreateProgramWithSource(context,1,(const char**) &programBuffer,&programSize, NULL);
-    free(programBuffer);
-
-    // read kernel source back in from program to check
-    clGetProgramInfo(program, CL_PROGRAM_SOURCE, 0, NULL, &KernelSourceSize);
-    KernelSource = (char*) malloc(KernelSourceSize);
-    clGetProgramInfo(program, CL_PROGRAM_SOURCE, KernelSourceSize, KernelSource, NULL);
-
-    program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
-    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-    kernel = clCreateKernel(program, "square", &err);
-	//----------------------------------------------------------------------------
+//---------------------------------------------------------------------
+///* Load kernel source file */
+	int MAX_SOURCE_SIZE = 1048576;
+	FILE * fp;
+	const char fileName[] = "./nie_alphas.cl";
+	size_t KernelSourceSize;
+	char *KernelSource;
+	fp = fopen(fileName, "r");
+	if (!fp) {
+		fprintf(stderr, "Failed to load kernel.\n");
+		exit(1);
+	}
+	KernelSource = (char *)malloc(MAX_SOURCE_SIZE);
+	KernelSourceSize = fread(KernelSource, 1, MAX_SOURCE_SIZE, fp);
+	program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
+	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+	kernel = clCreateKernel(program, "nie_alphas_cl", &err);
+	fclose(fp);
+//----------------------------------------------------------------------------
 
     input1 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(float) * count, NULL, NULL);
     input2 = clCreateBuffer(context,  CL_MEM_READ_ONLY,  sizeof(float) * count, NULL, NULL);
@@ -634,20 +721,29 @@ int main(int argc, const char *argv[]) {
     int correct;
 
     int i = 0;
+    //for(i = 0; i < count; i++) {
+	//	xi1[i] = rand() / (float)RAND_MAX;
+	//	xi2[i] = rand() / (float)RAND_MAX;
+	//}
+	cl_float2 *pos = (cl_float2 *)malloc(sizeof(cl_float2)*count);
+	cl_float2 *alphas = (cl_float2 *)malloc(sizeof(cl_float2)*count);
+
     for(i = 0; i < count; i++) {
-		xi1[i] = rand() / (float)RAND_MAX;
-		xi2[i] = rand() / (float)RAND_MAX;
+		pos[i].x = rand() / (float)RAND_MAX;
+		pos[i].y = rand() / (float)RAND_MAX;
 	}
 
 
-	call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./play_with.cl");
+
+	//call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./nie_alphas.cl");
+	call_kernel_nie(pos,count,lpar,alphas,"./nie_alphas.cl");
 
     //float *alpha1_c = (float *)malloc(sizeof(float)*count);
     //float *alpha2_c = (float *)malloc(sizeof(float)*count);
     //correct = 0;
     //for(i = 0; i < count; i++) {
 	//	lq_nie(xi1[i],xi2[i],lpar,&alpha1_c[i],&alpha2_c[i]);
-	//	//printf("%f-----%f||%f-----%f\n",alpha1[i],alpha1_c[i],alpha2[i],alpha2_c[i]);
+	//	printf("%f-----%f||%f-----%f\n",alphas[i].x,alpha1_c[i],alphas[i].y,alpha2_c[i]);
     //}
 
 	free(xi1);
