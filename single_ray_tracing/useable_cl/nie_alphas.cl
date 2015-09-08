@@ -8,32 +8,32 @@ __kernel void nie_alphas_cl(
 	int i = get_global_id(0);               
 
 
-    private float xc1;
+    local float xc1;
 	xc1 = lpar[0];
-    private float xc2;
+    local float xc2;
 	xc2 = lpar[1];
-    private float q;
+    local float q;
 	q   = lpar[2];
-    private float rc;
+    local float rc;
 	rc  = lpar[3];
-	private float re;
+	local float re;
     re  = lpar[4];
-	private float pha;
+	local float pha;
     pha = lpar[5];
 
-	private float xi1;
+	local float xi1;
 	xi1 = input1[i];
-	private float xi2;
+	local float xi2;
 	xi2 = input2[i];
 
-    private float phirad;
+    local float phirad;
 	phirad = pha*3.141592653589793/180.0;;
-    private float cosa;
+    local float cosa;
 	cosa = cos(phirad);
-    private float sina; 
+    local float sina; 
 	sina = sin(phirad);
-	private float phi,a1,a2;
-	private float xt1,xt2;
+	local float phi,a1,a2;
+	local float xt1,xt2;
 
 	xt1 = (xi1-xc1)*cosa+(xi2-xc2)*sina;
 	xt2 = (xi2-xc2)*cosa-(xi1-xc1)*sina;

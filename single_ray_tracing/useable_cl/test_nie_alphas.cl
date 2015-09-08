@@ -1,7 +1,7 @@
 __kernel void nie_alphas_cl(                      
-   __const __global float2* inputs,                  
-   __const __global float* lpar,                  
-   __global float2* outputs,                 
+   __const __global float2 * inputs,                  
+   __const __global float * lpar,                  
+   __global float2 * outputs,                 
    const int count) {                                          
 
 	int i = get_global_id(0);               

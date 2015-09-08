@@ -8,25 +8,25 @@
 #include <sys/stat.h>
 #include <OpenCL/opencl.h>
 
-//#define CL_CHECK(_expr)                                                         \
-//   do {                                                                         \
-//     cl_int _err = _expr;                                                       \
-//     if (_err == CL_SUCCESS)                                                    \
-//       break;                                                                   \
-//     fprintf(stderr, "OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err);   \
-//     abort();                                                                   \
-//   } while (0)
-//
-//#define CL_CHECK_ERR(_expr)                                                     \
-//   ({                                                                           \
-//     cl_int _err = CL_INVALID_VALUE;                                            \
-//     typeof(_expr) _ret = _expr;                                                \
-//     if (_err != CL_SUCCESS) {                                                  \
-//       fprintf(stderr, "OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err); \
-//       abort();                                                                 \
-//     }                                                                          \
-//     _ret;                                                                      \
-//   })
+#define CL_CHECK(_expr)                                                         \
+   do {                                                                         \
+     cl_int _err = _expr;                                                       \
+     if (_err == CL_SUCCESS)                                                    \
+       break;                                                                   \
+     fprintf(stderr, "OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err);   \
+     abort();                                                                   \
+   } while (0)
+
+#define CL_CHECK_ERR(_expr)                                                     \
+   ({                                                                           \
+     cl_int _err = CL_INVALID_VALUE;                                            \
+     typeof(_expr) _ret = _expr;                                                \
+     if (_err != CL_SUCCESS) {                                                  \
+       fprintf(stderr, "OpenCL Error: '%s' returned %d!\n", #_expr, (int)_err); \
+       abort();                                                                 \
+     }                                                                          \
+     _ret;                                                                      \
+   })
 
 //--------------------------------------------------------------------
 void pfn_notify(const char *errinfo, const void *private_info, size_t cb, void *user_data) {
@@ -568,9 +568,11 @@ void call_kernel_nie(cl_float2 *pos,int count,float *lpar,cl_float2 *alphas,char
 	int err;
     int gpu = 1;
     err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
-    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
-	//context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, &pfn_notify, NULL, &_err));
+	printf("----------------------------%d\n",err);
+    //context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+	context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, &pfn_notify, NULL, &_err));
     commands = clCreateCommandQueue(context, device_id, 0, &err);
+	printf("----------------------------%d\n",err);
 
 //---------------------------------------------------------------------
 ///* Load kernel source file */
@@ -589,6 +591,7 @@ void call_kernel_nie(cl_float2 *pos,int count,float *lpar,cl_float2 *alphas,char
 	program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
 	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 	kernel = clCreateKernel(program, "nie_alphas_cl", &err);
+	printf("----------------------------%d\n",err);
 	fclose(fp);
 //----------------------------------------------------------------------------
 
@@ -597,7 +600,9 @@ void call_kernel_nie(cl_float2 *pos,int count,float *lpar,cl_float2 *alphas,char
     outputs = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float2) * count, NULL, NULL);
 
     err = clEnqueueWriteBuffer(commands, inputs, CL_TRUE, 0, sizeof(cl_float2) * count, pos, 0, NULL, NULL);
+	printf("----------------------------%d\n",err);
     err = clEnqueueWriteBuffer(commands, lpar_d, CL_TRUE, 0, sizeof(float) * 6, lpar, 0, NULL, NULL);
+	printf("----------------------------%d\n",err);
 
     clSetKernelArg(kernel, 0, sizeof(cl_mem), &inputs);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &lpar_d);
@@ -605,10 +610,13 @@ void call_kernel_nie(cl_float2 *pos,int count,float *lpar,cl_float2 *alphas,char
     clSetKernelArg(kernel, 3, sizeof(int), &count);
 
     err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+	printf("----------------------------%d\n",err);
     global = count;
     err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+	printf("----------------------------%d\n",err);
     clFinish(commands);
     err = clEnqueueReadBuffer( commands, outputs, CL_TRUE, 0, sizeof(cl_float2) * count, alphas, 0, NULL, NULL );
+	printf("----------------------------%d\n",err);
 
     clReleaseMemObject(inputs);
     clReleaseMemObject(lpar_d);
@@ -733,24 +741,22 @@ int main(int argc, const char *argv[]) {
 		pos[i].y = rand() / (float)RAND_MAX;
 	}
 
-
-
 	//call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./nie_alphas.cl");
-	call_kernel_nie(pos,count,lpar,alphas,"./nie_alphas.cl");
+	call_kernel_nie(pos,count,lpar,alphas,"./test_nie_alphas.cl");
 
-    //float *alpha1_c = (float *)malloc(sizeof(float)*count);
-    //float *alpha2_c = (float *)malloc(sizeof(float)*count);
-    //correct = 0;
-    //for(i = 0; i < count; i++) {
-	//	lq_nie(xi1[i],xi2[i],lpar,&alpha1_c[i],&alpha2_c[i]);
-	//	printf("%f-----%f||%f-----%f\n",alphas[i].x,alpha1_c[i],alphas[i].y,alpha2_c[i]);
-    //}
+    float *alpha1_c = (float *)malloc(sizeof(float)*count);
+    float *alpha2_c = (float *)malloc(sizeof(float)*count);
+    correct = 0;
+    for(i = 0; i < count; i++) {
+		lq_nie(pos[i].x,pos[i].y,lpar,&alpha1_c[i],&alpha2_c[i]);
+		printf("%f-----%f||%f-----%f\n",alphas[i].x,alpha1_c[i],alphas[i].y,alpha2_c[i]);
+    }
 
 	free(xi1);
 	free(xi2);
 	free(alpha1);
 	free(alpha2);
-	//free(alpha1_c);
-	//free(alpha2_c);
+	free(alpha1_c);
+	free(alpha2_c);
     return 0;
 }
