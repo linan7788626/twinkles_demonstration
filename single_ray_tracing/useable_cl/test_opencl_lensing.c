@@ -710,53 +710,86 @@ void call_kernel(float *xi1,float *xi2,int count,float *lpar,float *alpha1,float
     //printf("nKernel source:\n\n %s \n", KernelSource);
     free(KernelSource);
 }
+//int opencl_lq_py(float * posx1,float * posx2,float *lpar,int count,float *alpha1,float *alpha2) {
+int opencl_lq_py(float * posx1,float * posx2,float *lpar,int count,float *alpha1,float *alpha2,float *alpha1_c,float *alpha2_c) {
 
-int main(int argc, const char *argv[]) {
-
-    float xlc0 = 0.0;
-    float ylc0 = 0.0;
-    float ql0 = 0.7;
-    float rc0 = 0.1;
-    float re0 = 1.0;
-    float phi0 = 0.0;
-    float lpar[] = {ylc0,xlc0,ql0,rc0,re0,phi0};
-
-	int count = 1024*1024;
-    float *xi1 = (float *)malloc(sizeof(float)*count);
-    float *xi2 = (float *)malloc(sizeof(float)*count);
-    float *alpha1 = (float *)malloc(sizeof(float)*count);
-    float *alpha2 = (float *)malloc(sizeof(float)*count);
-    int correct;
-
-    int i = 0;
-    //for(i = 0; i < count; i++) {
-	//	xi1[i] = rand() / (float)RAND_MAX;
-	//	xi2[i] = rand() / (float)RAND_MAX;
-	//}
 	cl_float2 *pos = (cl_float2 *)malloc(sizeof(cl_float2)*count);
 	cl_float2 *alphas = (cl_float2 *)malloc(sizeof(cl_float2)*count);
 
-    for(i = 0; i < count; i++) {
-		pos[i].x = rand() / (float)RAND_MAX;
-		pos[i].y = rand() / (float)RAND_MAX;
+	int i;
+	for(i = 0; i < count; i++) {
+		pos[i].x = posx1[i];
+		pos[i].y = posx2[i];
 	}
 
 	//call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./nie_alphas.cl");
 	call_kernel_nie(pos,count,lpar,alphas,"./test_nie_alphas.cl");
 
-    float *alpha1_c = (float *)malloc(sizeof(float)*count);
-    float *alpha2_c = (float *)malloc(sizeof(float)*count);
-    correct = 0;
-    for(i = 0; i < count; i++) {
+	for(i = 0; i < count; i++) {
 		lq_nie(pos[i].x,pos[i].y,lpar,&alpha1_c[i],&alpha2_c[i]);
-		printf("%f-----%f||%f-----%f\n",alphas[i].x,alpha1_c[i],alphas[i].y,alpha2_c[i]);
-    }
+		//printf("%f-----%f||%f-----%f\n",alphas[i].x,alpha1_c[i],alphas[i].y,alpha2_c[i]);
+	}
 
-	free(xi1);
-	free(xi2);
-	free(alpha1);
-	free(alpha2);
-	free(alpha1_c);
-	free(alpha2_c);
-    return 0;
+	for(i = 0; i < count; i++) {
+		alpha1[i] = alphas[i].x;
+		alpha2[i] = alphas[i].y;
+	}
+
+	free(pos);
+	free(alphas);
+	return 0;
 }
+
+//int main(int argc, const char *argv[]) {
+/*int main_test() {*/
+
+    /*float xlc0 = 0.0;*/
+    /*float ylc0 = 0.0;*/
+    /*float ql0 = 0.7;*/
+    /*float rc0 = 0.1;*/
+    /*float re0 = 1.0;*/
+    /*float phi0 = 0.0;*/
+    /*float lpar[] = {ylc0,xlc0,ql0,rc0,re0,phi0};*/
+
+	/*int count = 1024*1024;*/
+    /*float *xi1 = (float *)malloc(sizeof(float)*count);*/
+    /*float *xi2 = (float *)malloc(sizeof(float)*count);*/
+    /*float *alpha1 = (float *)malloc(sizeof(float)*count);*/
+    /*float *alpha2 = (float *)malloc(sizeof(float)*count);*/
+    /*int correct;*/
+
+    /*int i = 0;*/
+    /*//for(i = 0; i < count; i++) {*/
+	/*//	xi1[i] = rand() / (float)RAND_MAX;*/
+	/*//	xi2[i] = rand() / (float)RAND_MAX;*/
+	/*//}*/
+	/*cl_float2 *pos = (cl_float2 *)malloc(sizeof(cl_float2)*count);*/
+	/*cl_float2 *alphas = (cl_float2 *)malloc(sizeof(cl_float2)*count);*/
+
+    /*for(i = 0; i < count; i++) {*/
+		/*pos[i].x = rand() / (float)RAND_MAX;*/
+		/*pos[i].y = rand() / (float)RAND_MAX;*/
+	/*}*/
+
+	/*//call_kernel(xi1,xi2,count,lpar,alpha1,alpha2,"./nie_alphas.cl");*/
+	/*call_kernel_nie(pos,count,lpar,alphas,"./test_nie_alphas.cl");*/
+    /*//for(i = 0; i < count; i++) {*/
+	/*//	printf("%f-----||-----%f\n",alphas[i].x,alphas[i].y);*/
+    /*//}*/
+
+    /*//float *alpha1_c = (float *)malloc(sizeof(float)*count);*/
+    /*//float *alpha2_c = (float *)malloc(sizeof(float)*count);*/
+    /*//correct = 0;*/
+    /*//for(i = 0; i < count; i++) {*/
+	/*//	lq_nie(pos[i].x,pos[i].y,lpar,&alpha1_c[i],&alpha2_c[i]);*/
+	/*//	printf("%f-----%f||%f-----%f\n",alphas[i].x,alpha1_c[i],alphas[i].y,alpha2_c[i]);*/
+    /*//}*/
+	/*//free(alpha1_c);*/
+	/*//free(alpha2_c);*/
+
+	/*free(xi1);*/
+	/*free(xi2);*/
+	/*free(alpha1);*/
+	/*free(alpha2);*/
+    /*return 0;*/
+/*}*/
