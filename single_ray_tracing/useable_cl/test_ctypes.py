@@ -45,7 +45,7 @@ def main():
     phi0 = 0.0
     lpar = np.array([ylc0,xlc0,ql0,rc0,re0,phi0])
 
-    count = 1024*1024
+    count = 1024*1024*32
     xi1 = np.random.random(count)
     xi2 = np.random.random(count)
     alpha1,alpha2,alpha1_c,alpha2_c = call_opencl_lq(xi1,xi2,lpar)
