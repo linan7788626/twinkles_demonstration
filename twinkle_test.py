@@ -153,12 +153,27 @@ def lensed_images(xi1,xi2,yi1,yi2,gpar):
 
     return g_image,g_lensimage
 
+def lensed_images_point(xi1,xi2,yi1,yi2,gpar):
+
+    g_image = tophat_2d(xi1,xi2,gpar)
+    g_lensimage = tophat_2d(yi1,yi2,gpar)
+
+    return g_image,g_lensimage
+
 def xy_rotate(x, y, xcen, ycen, phi):
 
     phirad = np.deg2rad(phi)
     xnew = (x - xcen) * np.cos(phirad) + (y - ycen) * np.sin(phirad)
     ynew = (y - ycen) * np.cos(phirad) - (x - xcen) * np.sin(phirad)
     return (xnew,ynew)
+
+def tophat_2d(x, y, par):
+
+    (xnew,ynew) = xy_rotate(x, y, par[2], par[3], par[5])
+    r_ell_sq = ((xnew**2)*par[4] + (ynew**2)/par[4])/np.abs(par[1])**2
+    res = r_ell_sq*0.0
+    res[r_ell_sq<=1.0] = par[0]
+    return res
 
 def gauss_2d(x, y, par):
 
@@ -239,9 +254,14 @@ def main():
 
     g_lens = lens_galaxies(xi1,xi2,glpar)
 
-    base0[:,:,0] = g_lens*256
-    base0[:,:,1] = g_lens*128
+    #base0[:,:,0] = g_lens*256
+    #base0[:,:,1] = g_lens*128
+    #base0[:,:,2] = g_lens*0
+
+    base0[:,:,0] = g_lens*0
+    base0[:,:,1] = g_lens*0
     base0[:,:,2] = g_lens*0
+
     x = 0
     y = 0
     step = 1
@@ -336,6 +356,17 @@ def main():
         gpar = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
         #----------------------------------------------
 
+        #----------------------------------------------
+        #parameters of SNs.
+        #----------------------------------------------
+        g_amp = 1.0         # peak brightness value
+        g_sig = 0.1          # Gaussian "sigma" (i.e., size)
+        g_xcen = x*2.0/nnn+0.05  # x position of center
+        g_ycen = y*2.0/nnn+0.05  # y position of center
+        g_axrat = 1.0       # minor-to-major axis ratio
+        g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
+        gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
+
 
         #phi,td,ai1,ai2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         #yi1 = xi1-ai1
@@ -364,26 +395,39 @@ def main():
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
+        g_image = g_image*0.0
+        g_lensimage = g_lensimage*0.0
+        g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
 
-        base1[:,:,0] = g_image*256
-        base1[:,:,1] = g_image*256
-        base1[:,:,2] = g_image*256
 
         sktd = td/td.max()*ic/2
-
         itmp = (i+30-sktd)%(FPS)
-
         ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
 
+        sktd0 = 0.0*sktd
+        itmp0 = (i+30-sktd0)%(FPS)
+        ratio0 = (ic-itmp0)*itmp0/(ic/2.0)**2.0
+
         ratio[ratio<0]=0.0
+        ratio0[ratio0<0]=0.0
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)
         #base2[:,:,2] = g_lensimage*256*(1+ratio)
+        #base2[:,:,0] = g_lensimage*102*(1.0+ratio)/2
+        #base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
+        #base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
 
-        base2[:,:,0] = g_lensimage*102*(1.0+ratio)/2
-        base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
-        base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
+        print np.max(g_sn),np.max(ratio0)
+
+        base1[:,:,0] = g_sn*100*(1.0+ratio0)/2+g_image*256
+        base1[:,:,1] = g_sn*100*(1.0+ratio0)/2+g_image*256
+        base1[:,:,2] = g_sn*100*(1.0+ratio0)/2+g_image*256
+
+        base2[:,:,0] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*102
+        base2[:,:,1] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*178
+        base2[:,:,2] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*256
+
 
         wf = base1+base2
 
@@ -397,7 +441,6 @@ def main():
 
         #base = wf*base0+(base1+base2)
         pygame.surfarray.blit_array(mouse_cursor,base)
-
 
         screen.blit(mouse_cursor, (0, 0))
 
