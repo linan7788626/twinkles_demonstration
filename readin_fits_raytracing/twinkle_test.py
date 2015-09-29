@@ -183,6 +183,12 @@ def gauss_2d(x, y, par):
     r_ell_sq = ((xnew**2)*par[4] + (ynew**2)/par[4]) / np.abs(par[1])**2
     return par[0] * np.exp(-0.5*r_ell_sq)
 
+def gauss_1d(x, x0,sigma,a):
+
+    r_ell_sq = ((x-x0)**2.0/sigma**2)
+    res = a*np.exp(-0.5*r_ell_sq)
+    return res
+
 def find_critical_curve(mu):
     rows,cols = np.indices(np.shape(mu))
     cdtn = np.sign(mu)*(np.sign(mu[rows-1,cols])+np.sign(mu[rows,cols-1])+np.sign(mu[(rows+1)%len(rows),cols])+np.sign(mu[rows,(cols+1)%len(cols)]))
@@ -279,7 +285,7 @@ def main():
 
     #----------------------------------------------------
 
-    ic = FPS/4.0
+    ic = FPS/24.0
 
     i = 0
     while True:
@@ -373,7 +379,7 @@ def main():
         g_ycen = x*2.0/nnn+0.05  # y position of center
         g_axrat = 1.0       # minor-to-major axis ratio
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
-        #gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
+        gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
 
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
@@ -382,24 +388,32 @@ def main():
         g_lensimage = g_lensimage*0.0
         #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
 
-        #g_sn = tophat_2d(xi1,xi2,gpsn)
-        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
-        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
-        g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
-        g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
+        g_sn = tophat_2d(xi1,xi2,gpsn)
+        g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
+        g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
+
+        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
+        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
 
 
 
-        sktd = td/td.max()*ic/2
-        itmp = (i+30-sktd)%(FPS)
-        ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
+        #sktd = td/td.max()*ic
+        #itmp = (i+30-sktd)%(FPS)
+        #ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
 
-        sktd0 = 0.0*sktd
-        itmp0 = (i+30-sktd0)%(FPS)
-        ratio0 = (ic-itmp0)*itmp0/(ic/2.0)**2.0
+        #sktd0 = 0.0*sktd
+        #itmp0 = (i+90-sktd0)%(FPS)
+        #ratio0 = (ic-itmp0)*itmp0/(ic/2.0)**2.0
 
-        ratio[ratio<0]=0.0
-        ratio0[ratio0<0]=0.0
+        #ratio[ratio<0]=0.0
+        #ratio0[ratio0<0]=0.0
+
+
+        sktd = td/td.max()*ic
+        itmp = (i)%(FPS+30)
+        ratio = gauss_1d(itmp,2.0*ic+sktd-20,ic,2.0)
+
+        ratio0 = gauss_1d(itmp,2.0*ic,ic,2.0)
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)
