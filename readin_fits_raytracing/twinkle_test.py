@@ -189,6 +189,11 @@ def gauss_1d(x, x0,sigma,a):
     res = a*np.exp(-0.5*r_ell_sq)
     return res
 
+def parabola_1d(x,xb,xc,a):
+    res = a*(x-xb)*(2.0*xc-(x-xb))
+    res[res<=0] = 0.0
+    return res
+
 def find_critical_curve(mu):
     rows,cols = np.indices(np.shape(mu))
     cdtn = np.sign(mu)*(np.sign(mu[rows-1,cols])+np.sign(mu[rows,cols-1])+np.sign(mu[(rows+1)%len(rows),cols])+np.sign(mu[rows,(cols+1)%len(cols)]))
@@ -285,7 +290,7 @@ def main():
 
     #----------------------------------------------------
 
-    ic = FPS/24.0
+    ic = FPS/12.0
 
     i = 0
     while True:
@@ -409,11 +414,16 @@ def main():
         #ratio0[ratio0<0]=0.0
 
 
-        sktd = td/td.max()*ic
-        itmp = (i)%(FPS+30)
-        ratio = gauss_1d(itmp,2.0*ic+sktd-20,ic,2.0)
+        #sktd = td/td.max()*ic
+        #itmp = (i)%(FPS+30)
+        #ratio = gauss_1d(itmp,2.0*ic+sktd-20,ic,2.0)
 
-        ratio0 = gauss_1d(itmp,2.0*ic,ic,2.0)
+        #ratio0 = gauss_1d(itmp,2.0*ic,ic,2.0)
+
+        sktd = td/td.max()*ic
+        itmp = (i)%(FPS)
+        ratio = parabola_1d(itmp,30+sktd,ic,2.0/ic**2.0)
+        ratio0 = parabola_1d(itmp,0.0*sktd,ic,2.0/ic**2.0)
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)
