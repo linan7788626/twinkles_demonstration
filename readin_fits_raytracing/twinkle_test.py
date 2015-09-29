@@ -393,12 +393,12 @@ def main():
         g_lensimage = g_lensimage*0.0
         #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
 
-        g_sn = tophat_2d(xi1,xi2,gpsn)
-        g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
-        g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
+        #g_sn = tophat_2d(xi1,xi2,gpsn)
+        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
+        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
 
-        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
-        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
+        g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
+        g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
 
 
 
