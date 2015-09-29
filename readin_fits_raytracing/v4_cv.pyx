@@ -74,3 +74,26 @@ def call_all_about_lensing(np.ndarray[Dtype, ndim=2, mode="c"] xi1,
     all_about_lensing(<Dtype *>xi1.data,<Dtype *>xi2.data,nx1,nx2,<Dtype *>spar.data,nspars,<Dtype *>spars_array.data,nssubs,<Dtype *>lpar.data,nlpars,<Dtype *>lpars_array.data,nlsubs,<Dtype *>s_image.data,<Dtype *>g_lensimage.data,<Dtype *>critical.data,<Dtype *>caustic.data)
 
     return s_image,g_lensimage,critical,caustic.T
+
+cdef extern from "ray_tracing_funcs.h":
+    void inverse_cic_omp(double *in_map, double *posy1, double *posy2, double ysc1, double ysc2,double dsi, int nsx, int nsy, int nlx, int nly, double *out_map);
+    void inverse_cic(double *in_map, double *posy1, double *posy2, double ysc1, double ysc2,double dsi, int nsx, int nsy, int nlx, int nly, double *out_map);
+
+def call_ray_tracing(np.ndarray[Dtype, ndim=2, mode="c"] in_map,
+                     np.ndarray[Dtype, ndim=2, mode="c"] yi1,
+                     np.ndarray[Dtype, ndim=2, mode="c"] yi2,
+                     double ysc1,double ysc2,double dsi):
+    cdef int nsx
+    cdef int nsy
+    nsx,nsy = np.shape(in_map)
+    cdef int nlx
+    cdef int nly
+    nlx,nly = np.shape(yi1)
+
+    cdef np.ndarray out_map = np.zeros((nlx,nly),dtype=np.double)
+    inverse_cic(<Dtype *>in_map.data,<Dtype *>yi1.data,<Dtype *>yi2.data,ysc1,ysc2,dsi,nsx,nsy,nlx,nly,<Dtype *>out_map.data)
+
+    return out_map
+
+
+

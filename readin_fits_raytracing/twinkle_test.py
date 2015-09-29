@@ -3,6 +3,8 @@ import pygame
 from pygame.locals import *
 from sys import exit
 import numpy as np
+import libv4_cv as lv4
+import pyfits
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -202,10 +204,16 @@ def main():
     nnn = 512
     boxsize = 4.0
     dsx = boxsize/nnn
+    dsi = dsx*0.5
     xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi2 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi1,xi2 = np.meshgrid(xi1,xi2)
 
+    ysc1 = 0.0
+    ysc2 = 0.0
+
+    g_sn = pyfits.getdata("./compound_R_1_0_S_1_1_u.fits")
+    g_sn = np.array(g_sn,dtype="<d")
 
     #cc = find_critical_curve(mu)
 
@@ -361,43 +369,25 @@ def main():
         #----------------------------------------------
         g_amp = 1.0         # peak brightness value
         g_sig = 0.1          # Gaussian "sigma" (i.e., size)
-        g_xcen = x*2.0/nnn+0.05  # x position of center
-        g_ycen = y*2.0/nnn+0.05  # y position of center
+        g_xcen = y*2.0/nnn+0.05  # x position of center
+        g_ycen = x*2.0/nnn+0.05  # y position of center
         g_axrat = 1.0       # minor-to-major axis ratio
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
-        gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
+        #gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
 
-
-        #phi,td,ai1,ai2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-        #yi1 = xi1-ai1
-        #yi2 = xi2-ai2
-        #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-
-        #phi,ai1,ai2 = multiple_nie_all(xi1,xi2,lpars_list)
-#<<<<<<< HEAD
-#        #Kc = 1.0
-#        ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-#        #td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
-#        #yi1 = xi1-ai1
-#        #yi2 = xi2-ai2
-#=======
-#        phi,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
-#        Kc = 1.0
-#        #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-#        td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
-#        yi1 = xi1-ai1
-#        yi2 = xi2-ai2
-#        g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-#
-#        #phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-#>>>>>>> develop
-        #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
         g_image = g_image*0.0
         g_lensimage = g_lensimage*0.0
-        g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
+        #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
+
+        #g_sn = tophat_2d(xi1,xi2,gpsn)
+        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
+        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
+        g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
+        g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
+
 
 
         sktd = td/td.max()*ic/2
@@ -418,15 +408,13 @@ def main():
         #base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
         #base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
 
-        print np.max(g_sn),np.max(ratio0)
+        base1[:,:,0] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        base1[:,:,1] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        base1[:,:,2] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
 
-        base1[:,:,0] = g_sn*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,1] = g_sn*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,2] = g_sn*100*(1.0+ratio0)/2+g_image*256
-
-        base2[:,:,0] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*102
-        base2[:,:,1] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*178
-        base2[:,:,2] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*256
+        base2[:,:,0] = g_lsn*100*(1.0+ratio)/2+g_lensimage*102
+        base2[:,:,1] = g_lsn*100*(1.0+ratio)/2+g_lensimage*178
+        base2[:,:,2] = g_lsn*100*(1.0+ratio)/2+g_lensimage*256
 
 
         wf = base1+base2
@@ -453,5 +441,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 

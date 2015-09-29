@@ -14,7 +14,7 @@ import numpy as np
 
 #ext = Extension("libv2_cv", ["./v2_cv.pyx","./cv_test.c","./fcic.c"],
 #ext = Extension("libv3_cv", ["./v4_cv.pyx","./all_cv_test.c"],
-ext = Extension("libv4_cv", ["./v4_cv.pyx","./all_cv_test.c"],
+ext = Extension("libv4_cv", ["./v4_cv.pyx","./all_cv_test.c","./ray_tracing_funcs.c"],
     include_dirs=[np.get_include(),
                   "./"],
     library_dirs=["./"],
