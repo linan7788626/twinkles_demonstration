@@ -432,16 +432,17 @@ def main():
         #base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
         #base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
 
-        base1[:,:,0] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,1] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,2] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        #base1[:,:,0] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        #base1[:,:,1] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        #base1[:,:,2] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
 
         base2[:,:,0] = g_lsn*100*(1.0+ratio)/2+g_lensimage*102
         base2[:,:,1] = g_lsn*100*(1.0+ratio)/2+g_lensimage*178
         base2[:,:,2] = g_lsn*100*(1.0+ratio)/2+g_lensimage*256
 
 
-        wf = base1+base2
+        #wf = base1+base2
+        wf = base2
 
         idx1 = wf>=base0
         idx2 = wf<base0
