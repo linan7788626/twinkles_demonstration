@@ -3,6 +3,8 @@ import pygame
 from pygame.locals import *
 from sys import exit
 import numpy as np
+import libv4_cv as lv4
+import pyfits
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -181,6 +183,17 @@ def gauss_2d(x, y, par):
     r_ell_sq = ((xnew**2)*par[4] + (ynew**2)/par[4]) / np.abs(par[1])**2
     return par[0] * np.exp(-0.5*r_ell_sq)
 
+def gauss_1d(x, x0,sigma,a):
+
+    r_ell_sq = ((x-x0)**2.0/sigma**2)
+    res = a*np.exp(-0.5*r_ell_sq)
+    return res
+
+def parabola_1d(x,xb,xc,a):
+    res = a*(x-xb)*(2.0*xc-(x-xb))
+    res[res<=0] = 0.0
+    return res
+
 def find_critical_curve(mu):
     rows,cols = np.indices(np.shape(mu))
     cdtn = np.sign(mu)*(np.sign(mu[rows-1,cols])+np.sign(mu[rows,cols-1])+np.sign(mu[(rows+1)%len(rows),cols])+np.sign(mu[rows,(cols+1)%len(cols)]))
@@ -202,10 +215,16 @@ def main():
     nnn = 512
     boxsize = 4.0
     dsx = boxsize/nnn
+    dsi = dsx*2.0
     xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi2 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi1,xi2 = np.meshgrid(xi1,xi2)
 
+    ysc1 = 0.0
+    ysc2 = 0.0
+
+    g_sn = pyfits.getdata("./compound_R_1_0_S_1_1_u.fits")
+    g_sn = np.array(g_sn,dtype="<d")
 
     #cc = find_critical_curve(mu)
 
@@ -254,16 +273,12 @@ def main():
 
     g_lens = lens_galaxies(xi1,xi2,glpar)
 
-    #base0[:,:,0] = g_lens*256
-    #base0[:,:,1] = g_lens*128
-    #base0[:,:,2] = g_lens*0
-
-    base0[:,:,0] = g_lens*0
-    base0[:,:,1] = g_lens*0
+    base0[:,:,0] = g_lens*256
+    base0[:,:,1] = g_lens*128
     base0[:,:,2] = g_lens*0
 
-    x = 0
-    y = 0
+    x = 0.33984375*nnn/2
+    y = -0.11328125*nnn/2
     step = 1
     gr_sig = 0.1
 
@@ -271,7 +286,7 @@ def main():
 
     #----------------------------------------------------
 
-    ic = FPS/4.0
+    ic = FPS/6.0
 
     i = 0
     while True:
@@ -360,7 +375,7 @@ def main():
         #parameters of SNs.
         #----------------------------------------------
         g_amp = 1.0         # peak brightness value
-        g_sig = 0.1          # Gaussian "sigma" (i.e., size)
+        g_sig = 0.05          # Gaussian "sigma" (i.e., size)
         g_xcen = x*2.0/nnn+0.05  # x position of center
         g_ycen = y*2.0/nnn+0.05  # y position of center
         g_axrat = 1.0       # minor-to-major axis ratio
@@ -368,63 +383,53 @@ def main():
         gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
 
 
-        #phi,td,ai1,ai2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-        #yi1 = xi1-ai1
-        #yi2 = xi2-ai2
-        #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-
-        #phi,ai1,ai2 = multiple_nie_all(xi1,xi2,lpars_list)
-#<<<<<<< HEAD
-#        #Kc = 1.0
-#        ##Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-#        #td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
-#        #yi1 = xi1-ai1
-#        #yi2 = xi2-ai2
-#=======
-#        phi,ai1,ai2 = multiple_new_nie_all(xi1,xi2,lpars_list)
-#        Kc = 1.0
-#        #Kc = (1.0+zl)/c*(Dl*Ds/Dls)
-#        td = Kc*(0.5*((ai1)**2.0+(ai2)**2.0)-phi)
-#        yi1 = xi1-ai1
-#        yi2 = xi2-ai2
-#        g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-#
-#        #phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-#>>>>>>> develop
-        #g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
         g_image = g_image*0.0
         g_lensimage = g_lensimage*0.0
-        g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
+        #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
+        g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
+
+        #g_sn = tophat_2d(xi1,xi2,gpsn)
+        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
+        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
 
 
-        sktd = td/td.max()*ic/2
-        itmp = (i+30-sktd)%(FPS)
-        ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
 
-        sktd0 = 0.0*sktd
-        itmp0 = (i+30-sktd0)%(FPS)
-        ratio0 = (ic-itmp0)*itmp0/(ic/2.0)**2.0
+        #sktd = td/td.max()*ic
+        #itmp = (i+30-sktd)%(FPS)
+        #ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
 
-        ratio[ratio<0]=0.0
-        ratio0[ratio0<0]=0.0
+        #sktd0 = 0.0*sktd
+        #itmp0 = (i+90-sktd0)%(FPS)
+        #ratio0 = (ic-itmp0)*itmp0/(ic/2.0)**2.0
 
-        #base2[:,:,0] = g_lensimage*102*(1+ratio)
-        #base2[:,:,1] = g_lensimage*178*(1+ratio)
-        #base2[:,:,2] = g_lensimage*256*(1+ratio)
-        #base2[:,:,0] = g_lensimage*102*(1.0+ratio)/2
-        #base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
-        #base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
+        #ratio[ratio<0]=0.0
+        #ratio0[ratio0<0]=0.0
 
-        base1[:,:,0] = g_sn*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,1] = g_sn*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,2] = g_sn*100*(1.0+ratio0)/2+g_image*256
 
-        base2[:,:,0] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*102
-        base2[:,:,1] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*178
-        base2[:,:,2] = g_lsn*100*(1.0+ratio)/2  +g_lensimage*256
+        #sktd = td/td.max()*ic
+        #itmp = (i)%(FPS+30)
+        #ratio = gauss_1d(itmp,2.0*ic+sktd-20,ic,2.0)
+
+        #ratio0 = gauss_1d(itmp,2.0*ic,ic,2.0)
+
+        sktd = td/td.max()*ic
+        itmp = (i)%(FPS)
+        ratio = parabola_1d(itmp,40+sktd,ic,2.0/ic**2.0)
+        ratio0 = parabola_1d(itmp,0.0*sktd,ic,2.0/ic**2.0)
+
+        #base1[:,:,0] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        #base1[:,:,1] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        #base1[:,:,2] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+
+        base1[:,:,0] = g_sn*168*(1.0+ratio0)/2+g_image*256
+        base1[:,:,1] = g_sn*168*(1.0+ratio0)/2+g_image*256
+        base1[:,:,2] = g_sn*168*(1.0+ratio0)/2+g_image*256
+
+        base2[:,:,0] = g_lsn*168*(1.0+ratio)/2+g_lensimage*102
+        base2[:,:,1] = g_lsn*168*(1.0+ratio)/2+g_lensimage*178
+        base2[:,:,2] = g_lsn*168*(1.0+ratio)/2+g_lensimage*256
 
 
         wf = base1+base2
@@ -451,5 +456,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 

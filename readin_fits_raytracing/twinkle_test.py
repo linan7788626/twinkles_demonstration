@@ -273,16 +273,12 @@ def main():
 
     g_lens = lens_galaxies(xi1,xi2,glpar)
 
-    #base0[:,:,0] = g_lens*256
-    #base0[:,:,1] = g_lens*128
-    #base0[:,:,2] = g_lens*0
-
-    base0[:,:,0] = g_lens*0
-    base0[:,:,1] = g_lens*0
+    base0[:,:,0] = g_lens*256
+    base0[:,:,1] = g_lens*128
     base0[:,:,2] = g_lens*0
 
-    x = 0
-    y = 0
+    x = 0.33984375*nnn/2
+    y = -0.11328125*nnn/2
     step = 1
     gr_sig = 0.1
 
@@ -290,7 +286,7 @@ def main():
 
     #----------------------------------------------------
 
-    ic = FPS/12.0
+    ic = FPS/6.0
 
     i = 0
     while True:
@@ -379,9 +375,9 @@ def main():
         #parameters of SNs.
         #----------------------------------------------
         g_amp = 1.0         # peak brightness value
-        g_sig = 0.1          # Gaussian "sigma" (i.e., size)
-        g_xcen = y*2.0/nnn+0.05  # x position of center
-        g_ycen = x*2.0/nnn+0.05  # y position of center
+        g_sig = 0.01          # Gaussian "sigma" (i.e., size)
+        g_xcen = x*2.0/nnn+0.05  # x position of center
+        g_ycen = y*2.0/nnn+0.05  # y position of center
         g_axrat = 1.0       # minor-to-major axis ratio
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
         gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
@@ -389,16 +385,14 @@ def main():
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
         g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-        g_image = g_image*0.0
-        g_lensimage = g_lensimage*0.0
+        #g_image = g_image
+        #g_lensimage = g_lensimage
         #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
+        g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
 
         #g_sn = tophat_2d(xi1,xi2,gpsn)
         #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
         #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
-
-        g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
-        g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
 
 
 
@@ -422,19 +416,16 @@ def main():
 
         sktd = td/td.max()*ic
         itmp = (i)%(FPS)
-        ratio = parabola_1d(itmp,30+sktd,ic,2.0/ic**2.0)
+        ratio = parabola_1d(itmp,40+sktd,ic,2.0/ic**2.0)
         ratio0 = parabola_1d(itmp,0.0*sktd,ic,2.0/ic**2.0)
 
-        #base2[:,:,0] = g_lensimage*102*(1+ratio)
-        #base2[:,:,1] = g_lensimage*178*(1+ratio)
-        #base2[:,:,2] = g_lensimage*256*(1+ratio)
-        #base2[:,:,0] = g_lensimage*102*(1.0+ratio)/2
-        #base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
-        #base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
+        #base1[:,:,0] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        #base1[:,:,1] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        #base1[:,:,2] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
 
-        base1[:,:,0] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,1] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
-        base1[:,:,2] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
+        base1[:,:,0] = g_sn*100*(1.0+ratio0)/2+g_image*256
+        base1[:,:,1] = g_sn*100*(1.0+ratio0)/2+g_image*256
+        base1[:,:,2] = g_sn*100*(1.0+ratio0)/2+g_image*256
 
         base2[:,:,0] = g_lsn*100*(1.0+ratio)/2+g_lensimage*102
         base2[:,:,1] = g_lsn*100*(1.0+ratio)/2+g_lensimage*178
