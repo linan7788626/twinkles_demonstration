@@ -234,7 +234,7 @@ def main():
 
     screen = pygame.display.set_mode((nnn, nnn), 0, 32)
 
-    pygame.display.set_caption("Gravitational Lensing Toy")
+    pygame.display.set_caption("Twinkles")
 
     mouse_cursor = pygame.Surface((nnn,nnn))
 
