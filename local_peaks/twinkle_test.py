@@ -401,7 +401,7 @@ def main():
         g_lensimage = g_lensimage
         #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
         g_sn,g_lsn = lensed_images(xi1,xi2,yi1,yi2,gpsn)
-        #g_lsn = detect_local_maxima(g_lsn)
+        g_lsn = detect_local_maxima(g_lsn)
 
         #g_sn = tophat_2d(xi1,xi2,gpsn)
         #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
