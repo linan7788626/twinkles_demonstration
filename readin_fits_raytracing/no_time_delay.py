@@ -4,7 +4,11 @@ from pygame.locals import *
 from sys import exit
 import numpy as np
 import libv4_cv as lv4
-import pyfits
+import astropy.io.fits as pyfits
+from scipy import misc
+
+
+
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -215,7 +219,7 @@ def main():
     nnn = 512
     boxsize = 4.0
     dsx = boxsize/nnn
-    dsi = dsx*1.0
+    dsi = dsx*0.03
     xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi2 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi1,xi2 = np.meshgrid(xi1,xi2)
@@ -238,11 +242,14 @@ def main():
 
     mouse_cursor = pygame.Surface((nnn,nnn))
 
+    g_sn = misc.imread('./inter.png')
     #----------------------------------------------------
 
     base0 = np.zeros((nnn,nnn,3),'uint8')
     base1 = np.zeros((nnn,nnn,3),'uint8')
     base2 = np.zeros((nnn,nnn,3),'uint8')
+
+    g_lsn = np.zeros((nnn,nnn,3),'uint8')
 
     #----------------------------------------------------
     # lens parameters for main halo
@@ -251,7 +258,7 @@ def main():
     ql0 = 0.699999999999
     rc0 = 0.000000000001
     re0 = 1.0
-    phi0 = 30.0
+    phi0 = 0.0
     lpar = np.asarray([xlc1, xlc2, re0, rc0, ql0, phi0])
 
     lpars_list = []
@@ -388,8 +395,11 @@ def main():
 
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-        g_lsn = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
-        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
+        # g_lsn = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
+
+        g_lsn[:,:,0] = lv4.call_ray_tracing(g_sn[:,:,0].copy(order='C').astype('float'),yi1,yi2,g_xcen,g_ycen,dsi)
+        g_lsn[:,:,1] = lv4.call_ray_tracing(g_sn[:,:,1].copy(order='C').astype('float'),yi1,yi2,g_xcen,g_ycen,dsi)
+        g_lsn[:,:,2] = lv4.call_ray_tracing(g_sn[:,:,2].copy(order='C').astype('float'),yi1,yi2,g_xcen,g_ycen,dsi)
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)
@@ -398,9 +408,9 @@ def main():
         #base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
         #base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
 
-        base2[:,:,0] = g_lsn*10.
-        base2[:,:,1] = g_lsn*10.
-        base2[:,:,2] = g_lsn*10.
+        base2[:,:,0] = g_lsn[:,:,0]
+        base2[:,:,1] = g_lsn[:,:,1]
+        base2[:,:,2] = g_lsn[:,:,2]
 
 
         wf = base1+base2

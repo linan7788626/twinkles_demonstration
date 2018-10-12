@@ -4,7 +4,7 @@ from pygame.locals import *
 from sys import exit
 import numpy as np
 import libv4_cv as lv4
-import pyfits
+import astropy.io.fits as pyfits
 
 #def re0_sigma(sigma):
 #    cv = 3e5

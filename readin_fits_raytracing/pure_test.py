@@ -5,6 +5,10 @@ from sys import exit
 import numpy as np
 import libv4_cv as lv4
 import astropy.io.fits as pyfits
+from scipy import misc
+
+
+
 
 #def re0_sigma(sigma):
 #    cv = 3e5
@@ -215,7 +219,7 @@ def main():
     nnn = 512
     boxsize = 4.0
     dsx = boxsize/nnn
-    dsi = dsx*2.0
+    dsi = dsx*0.03
     xi1 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi2 = np.linspace(-boxsize/2.0,boxsize/2.0-dsx,nnn)+0.5*dsx
     xi1,xi2 = np.meshgrid(xi1,xi2)
@@ -234,15 +238,18 @@ def main():
 
     screen = pygame.display.set_mode((nnn, nnn), 0, 32)
 
-    pygame.display.set_caption("Gravitational Lensing Toy")
+    pygame.display.set_caption("Simulations of Gravitational Lensing")
 
     mouse_cursor = pygame.Surface((nnn,nnn))
 
+    g_sn = misc.imread('./inter.png')
     #----------------------------------------------------
 
     base0 = np.zeros((nnn,nnn,3),'uint8')
     base1 = np.zeros((nnn,nnn,3),'uint8')
     base2 = np.zeros((nnn,nnn,3),'uint8')
+
+    g_lsn = np.zeros((nnn,nnn,3),'uint8')
 
     #----------------------------------------------------
     # lens parameters for main halo
@@ -251,7 +258,7 @@ def main():
     ql0 = 0.699999999999
     rc0 = 0.000000000001
     re0 = 1.0
-    phi0 = 30.0
+    phi0 = 0.0
     lpar = np.asarray([xlc1, xlc2, re0, rc0, ql0, phi0])
 
     lpars_list = []
@@ -277,9 +284,11 @@ def main():
     #base0[:,:,1] = g_lens*128
     #base0[:,:,2] = g_lens*0
 
-    base0[:,:,0] = g_lens*0
-    base0[:,:,1] = g_lens*0
-    base0[:,:,2] = g_lens*0
+    g_lens = misc.imread('./milan.png')
+
+    base0[:,:,0] = g_lens[:,:,0].T
+    base0[:,:,1] = g_lens[:,:,1].T
+    base0[:,:,2] = g_lens[:,:,2].T
 
     x = 0
     y = 0
@@ -368,62 +377,31 @@ def main():
         #----------------------------------------------
         g_amp = 1.0         # peak brightness value
         g_sig = gr_sig          # Gaussian "sigma" (i.e., size)
-        g_xcen = x*2.0/nnn  # x position of center
-        g_ycen = y*2.0/nnn  # y position of center
+        g_xcen = y*2.0/nnn  # x position of center
+        g_ycen = x*2.0/nnn  # y position of center
         g_axrat = 1.0       # minor-to-major axis ratio
         g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
-        gpar = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
+        #gpar = np.asarray([g_amp, g_sig, g_xcen, g_ycen, g_axrat, g_pa])
         #----------------------------------------------
 
-        #----------------------------------------------
-        #parameters of SNs.
-        #----------------------------------------------
-        g_amp = 1.0         # peak brightness value
-        g_sig = 0.1          # Gaussian "sigma" (i.e., size)
-        g_xcen = y*2.0/nnn+0.05  # x position of center
-        g_ycen = x*2.0/nnn+0.05  # y position of center
-        g_axrat = 1.0       # minor-to-major axis ratio
-        g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
-        gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
+        ##----------------------------------------------
+        ##parameters of SNs.
+        ##----------------------------------------------
+        #g_amp = 1.0         # peak brightness value
+        #g_sig = 0.1          # Gaussian "sigma" (i.e., size)
+        #g_xcen = y*2.0/nnn+0.05  # x position of center
+        #g_ycen = x*2.0/nnn+0.05  # y position of center
+        #g_axrat = 1.0       # minor-to-major axis ratio
+        #g_pa = 0.0          # major-axis position angle (degrees) c.c.w. from y axis
+        #gpsn = np.asarray([g_amp, g_sig, g_ycen, g_xcen, g_axrat, g_pa])
 
 
         phi,td,ai1,ai2,kappa,mu,yi1,yi2 = nie_all(xi1,xi2,xlc1,xlc2,re0,rc0,ql0,phi0,g_ycen,g_xcen)
-        g_image,g_lensimage = lensed_images(xi1,xi2,yi1,yi2,gpar)
-        g_image = g_image*0.0
-        g_lensimage = g_lensimage*0.0
-        #g_sn,g_lsn = lensed_images_point(xi1,xi2,yi1,yi2,gpsn)
+        # g_lsn = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
 
-        #g_sn = tophat_2d(xi1,xi2,gpsn)
-        #g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,ysc1,ysc2,dsi)
-        #g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,ysc1,ysc2,dsi)
-
-        g_sn_pin = lv4.call_ray_tracing(g_sn,xi1,xi2,g_xcen,g_ycen,dsi)
-        g_lsn = lv4.call_ray_tracing(g_sn,yi1,yi2,g_xcen,g_ycen,dsi)
-
-
-
-        #sktd = td/td.max()*ic
-        #itmp = (i+30-sktd)%(FPS)
-        #ratio = (ic-itmp)*itmp/(ic/2.0)**2.0
-
-        #sktd0 = 0.0*sktd
-        #itmp0 = (i+90-sktd0)%(FPS)
-        #ratio0 = (ic-itmp0)*itmp0/(ic/2.0)**2.0
-
-        #ratio[ratio<0]=0.0
-        #ratio0[ratio0<0]=0.0
-
-
-        #sktd = td/td.max()*ic
-        #itmp = (i)%(FPS+30)
-        #ratio = gauss_1d(itmp,2.0*ic+sktd-20,ic,2.0)
-
-        #ratio0 = gauss_1d(itmp,2.0*ic,ic,2.0)
-
-        sktd = td/td.max()*ic
-        itmp = (i)%(FPS)
-        ratio = parabola_1d(itmp,30+sktd,ic,2.0/ic**2.0)
-        ratio0 = parabola_1d(itmp,0.0*sktd,ic,2.0/ic**2.0)
+        g_lsn[:,:,0] = lv4.call_ray_tracing(g_sn[:,:,0].copy(order='C').astype('float'),yi1,yi2,g_xcen,g_ycen,dsi)
+        g_lsn[:,:,1] = lv4.call_ray_tracing(g_sn[:,:,1].copy(order='C').astype('float'),yi1,yi2,g_xcen,g_ycen,dsi)
+        g_lsn[:,:,2] = lv4.call_ray_tracing(g_sn[:,:,2].copy(order='C').astype('float'),yi1,yi2,g_xcen,g_ycen,dsi)
 
         #base2[:,:,0] = g_lensimage*102*(1+ratio)
         #base2[:,:,1] = g_lensimage*178*(1+ratio)
@@ -432,17 +410,12 @@ def main():
         #base2[:,:,1] = g_lensimage*178*(1.0+ratio)/2
         #base2[:,:,2] = g_lensimage*256*(1.0+ratio)/2
 
-        #base1[:,:,0] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
-        #base1[:,:,1] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
-        #base1[:,:,2] = g_sn_pin*100*(1.0+ratio0)/2+g_image*256
-
-        base2[:,:,0] = g_lsn*100*(1.0+ratio)/2+g_lensimage*102
-        base2[:,:,1] = g_lsn*100*(1.0+ratio)/2+g_lensimage*178
-        base2[:,:,2] = g_lsn*100*(1.0+ratio)/2+g_lensimage*256
+        base2[:,:,0] = g_lsn[:,:,0]
+        base2[:,:,1] = g_lsn[:,:,1]
+        base2[:,:,2] = g_lsn[:,:,2]
 
 
-        #wf = base1+base2
-        wf = base2
+        wf = base1+base2
 
         idx1 = wf>=base0
         idx2 = wf<base0
